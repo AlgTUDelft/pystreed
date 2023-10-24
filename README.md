@@ -26,7 +26,7 @@ from sklearn.metrics import accuracy_score
 import pandas as pd
 
 # Read data
-df = pd.read_csv("data/accuracy/anneal.csv", sep=" ", header=None)
+df = pd.read_csv("data/classification/anneal.csv", sep=" ", header=None)
 X = df[df.columns[1:]]
 y = df[0]
 
