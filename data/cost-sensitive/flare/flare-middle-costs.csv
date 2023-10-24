@@ -1,0 +1,14 @@
+0 39 39
+389 0 389
+1612 1612 0
+Attribute-name test-cost discount group binarize-begin binarize-end
+codeforclass 4.36544 4.36544 x 0 5
+codeforspotsize 6.60975 1.32195 a 6 11
+codeforspotdist 7.69262 7.54576 a 12 15
+activity 8.21288 8.21288 x 16 16
+evolution 10.0288 2.00576 a 17 19
+previous 39.8118 11.0989 a 20 20
+complex 51.9166 26.275 a 21 21
+region 69.6765 64.3887 a 22 22
+area 87.3879 87.3879 x 23 23
+soptarea 96.5457 96.5457 x 24 24

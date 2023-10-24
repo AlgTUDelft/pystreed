@@ -1,0 +1,9 @@
+0 5
+10 0
+Attribute-name test-cost discount group binarize-begin binarize-end
+timespreg 1.0 1.0 x 0 0
+massindex 1.0 1.0 x 1 1
+pedigree 1.0 1.0 x 2 2
+age 1.0 1.0 x 3 3
+glucosetol 17.61 15.51 a 4 7
+insulin 22.78 20.68 a 8 10

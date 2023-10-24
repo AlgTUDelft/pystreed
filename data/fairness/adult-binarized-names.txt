@@ -1,0 +1,20 @@
+label: 	Class:>50K
+
+f0 	Sex=Male
+f1 	Age<25
+f2 	Age=25-60
+f3 	Age>=60
+f4 	Workclass:Private
+f5 	Education Num<10
+f6 	Marital Status=Married
+f7 	Relationship=Married
+f8 	Occupation=office
+f9 	Occupation=heavy-work
+f10 	Occupation=other
+f11 	Race:White
+f12 	Capital Gain<5000
+f13 	Capital Loss<40
+f14 	Hours per Week<40
+f15 	Hours per Week=40-60
+f16 	Hours per Week>=60
+f17 	Native Country:United-States

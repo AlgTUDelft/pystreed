@@ -1,0 +1,75 @@
+When reusing the datasets in this repository, please refer to the sources as mentioned below:
+
+The UCI Machine Learning repository
+Dua, D. and Graff, C. (2019). UCI Machine Learning Repository [http://archive.ics.uci.edu/ml]. Irvine, CA: University of California, School of Information and Computer Science.
+
+Costs are from
+Lomax, S. (2013). Cost-sensitive decision tree learning using a multi-armed bandit framework. Phd Thesis. University of Salford.
+
+Note that for some of the datasets, the referenced UCI dataset does not have the same number of instances as in our repository. We follow the dataset versions as described by Lomax, S. (2013), and imported them from https://github.com/shanigu/CostSensitive.
+
+Annealing
+https://archive.ics.uci.edu/ml/datasets/Annealing
+License: CC BY 4.0
+
+Breast cancer
+https://archive.ics.uci.edu/ml/datasets/Breast+Cancer
+License: CC BY 4.0
+M. Zwitter and M. Soklic, University Medical Centre, Institute of Oncology, Ljubljana, Yugoslavia
+
+Car
+https://archive.ics.uci.edu/ml/datasets/car+evaluation
+License: CC BY 4.0
+
+Diabetes
+https://archive.ics.uci.edu/ml/datasets/diabetes
+License: CC BY 4.0
+
+Flare
+http://archive.ics.uci.edu/ml/datasets/solar+flare
+License: CC BY 4.0
+
+Glass
+https://archive.ics.uci.edu/ml/datasets/glass+identification
+License: CC BY 4.0
+
+Heart
+https://archive.ics.uci.edu/ml/datasets/heart+disease
+Andras Janosi, Hungarian Institute of Cardiology. Budapest
+William Steinbrunn, University Hospital, Zurich, Switzerland
+Matthias Pfisterer, University Hospital, Basel, Switzerland
+Robert Detrano, V.A. Medical Center, Long Beach and Cleveland Clinic Foundation
+License: CC BY 4.0
+
+Hepatitis
+https://archive.ics.uci.edu/ml/datasets/hepatitis
+License: CC BY 4.0
+
+Iris
+https://archive.ics.uci.edu/ml/datasets/iris
+License: CC BY 4.0
+
+Krk (Chess King-Rook vs King)
+https://archive.ics.uci.edu/ml/datasets/Chess+(King-Rook+vs.+King)
+License: CC BY 4.0
+
+Mushroom
+https://archive.ics.uci.edu/ml/datasets/mushroom
+License: CC BY 4.0
+
+Nursery
+https://archive.ics.uci.edu/ml/datasets/nursery
+License: CC BY 4.0
+
+Soybean
+https://archive.ics.uci.edu/ml/datasets/Soybean+(Large)
+License: CC BY 4.0
+
+Tictactoe
+https://archive.ics.uci.edu/ml/datasets/tic-tac-toe+Endgame
+License: CC BY 4.0
+
+Wine
+https://archive.ics.uci.edu/ml/datasets/wine
+License: CC BY 4.0
+

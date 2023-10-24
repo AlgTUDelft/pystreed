@@ -1,0 +1,41 @@
+[build-system]
+requires = [
+    "setuptools>=42",
+    "pybind11>=2.10.0"
+]
+build-backend = "setuptools.build_meta"
+target-version = "py37"
+
+[project]
+name = "pystreed"
+version = "1.0.0"
+description = "Python Implementation of STreeD: Dynamic Programming Approach for Optimal Decision Trees with Separable objectives and Constraints"
+license=  {file = "LICENSE"}
+authors = [
+    {name = "Jacobus G. M. van der Linden", email="J.G.M.vanderLinden@tudelft.nl"},
+    {name = "Emir Demirović", email="E.Demirovic@tudelft.nl"},
+    {name = "Mathijs M. de Weerdt", email="M.M.deWeerdt@tudelft.nl"}
+]
+maintainers = [
+    {name = "Jacobus G. M. van der Linden", email="J.G.M.vanderLinden@tudelft.nl"},
+]
+dependencies =[
+    "pandas>=1.0.0",
+    "numpy>=1.18.0",
+    "scikit-learn >=1.2.0,<1.3"
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent", ]
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "."
+]
+
+[tool.setuptools.packages]
+find = {}  # Scanning implicit namespaces is active by default
+
+[project.urls]
+Repository = "https://github.com/AlgTUDelft/pystreed"

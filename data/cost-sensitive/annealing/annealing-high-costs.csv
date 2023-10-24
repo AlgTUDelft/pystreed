@@ -1,0 +1,30 @@
+0 271645 271645 271645 271645
+21951 0 21951 21951 21951
+3177 3177 0 3177 3177
+32435 32435 32435 0 32435
+54329 54329 54329 54329 0
+Attribute-name test-cost discount group binarize-begin binarize-end
+family 50.0 50.0 x 0 2
+steel 50.0 50.0 x 3 10
+carbon 50.0 50.0 x 11 20
+hardness 50.0 50.0 x 21 27
+tempRolling 50.0 50.0 x 28 28
+condition 50.0 50.0 x 29 31
+nonAgeing 50.0 50.0 x 32 32
+surfQual 50.0 50.0 x 33 37
+lustre 50.0 50.0 x 38 38
+shape 50.0 50.0 x 39 39
+oil 50.0 50.0 x 40 42
+bore 50.0 50.0 x 43 45
+thick 250.0 250.0 x 46 54
+width 250.0 250.0 x 55 58
+len 250.0 250.0 x 59 59
+bf 1500.0 1500.0 a 60 60
+bt 1500.0 1500.0 a 61 61
+bwme 1500.0 1500.0 a 62 64
+bl 1500.0 1500.0 a 65 65
+chrom 1500.0 250.0 a 66 66
+cbond 1500.0 250.0 a 67 67
+ferro 1500.0 250.0 a 68 68
+formability 2000.0 2000.0 x 69 73
+strength 2000.0 2000.0 x 74 81

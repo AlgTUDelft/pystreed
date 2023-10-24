@@ -1,0 +1,6 @@
+Class
+Race:W
+Position=Captain
+Oral<70
+Written<70
+Combine<70

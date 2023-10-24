@@ -1,0 +1,70 @@
+When reusing the datasets in this repository, please refer to the sources as mentioned below:
+
+Adult
+https://archive.ics.uci.edu/ml/datasets/Adult
+License: CC BY 4.0
+
+Bank
+https://archive.ics.uci.edu/ml/datasets/bank+marketing
+Moro, S., Cortez, P., & Rita, P. (2014). A data-driven approach to predict the success of bank telemarketing. Decision Support Systems, 62, 22-31.
+License: CC BY 4.0
+
+Communities&Crime
+https://archive.ics.uci.edu/ml/datasets/communities+and+crime
+License: CC BY 4.0
+
+COMPAS-recid
+https://github.com/propublica/compas-analysis
+Angwin, J., Larson, J., Mattu, S., & Kirchner, L. (2016). Machine Bias. ProPublica. 
+https://www.propublica.org/article/how-we-analyzed-the-compas-recidivism-algorithm
+No license information, therefore not included in this repository. The data can be obtained through the link
+
+COMPAS-viol-recid
+https://github.com/propublica/compas-analysis
+Angwin, J., Larson, J., Mattu, S., & Kirchner, L. (2016). Machine Bias. ProPublica. 
+https://www.propublica.org/article/how-we-analyzed-the-compas-recidivism-algorithm
+No license information, therefore not included in this repository. The data can be obtained through the link
+
+Diabetes
+https://archive.ics.uci.edu/ml/datasets/diabetes+130-us+hospitals+for+years+1999-2008
+Strack, B., DeShazo, J. P., Gennings, C., Olmo, J. L., Ventura, S., Cios, K. J., & Clore, J. N. (2014). Impact of HbA1c measurement on hospital readmission rates: analysis of 70,000 clinical database patient records. BioMed research international, 2014.
+License: CC BY 4.0
+
+Dutch census
+https://microdata.worldbank.org/index.php/catalog/2102/data-dictionary/
+https://easy.dans.knaw.nl/ui/datasets/id/easy-dataset:32357
+Centraal Bureau voor de Statistiek (primary investigator); (2001): Dutch Census 2001 public use files (anonymised 1% samples from the microdata files). DANS. https://doi.org/10.17026/dans-xms-xc4a
+License: https://dans.knaw.nl/wp-content/uploads/2022/01/DANS_Licence_EN.pdf
+Not allowed to redistribute, so the data set is not included in git repository
+Note that Quy et al. do not use the full dataset, though they do not report this. To get their dataset, the following filters need to be applied:
+- Select only occupation with label 1, 2, 4, 5, 9. This becomes the class label as follows: group: 1,2: High, 4,5,9: Low
+
+German credit
+https://archive.ics.uci.edu/ml/datasets/statlog+(german+credit+data)
+License: CC BY 4.0
+
+KDD-Census-income
+https://archive.ics.uci.edu/ml/datasets/Census-Income+(KDD)
+License: CC BY 4.0
+
+Law-school
+https://github.com/jkomiyama/fairregresion/blob/master/dataset/law/lsac.sas7bdat
+original link no longer available. All instances with missing values are removed
+License: unclear, therefore the dataset is not included in our git repository
+
+OULAD
+https://analyse.kmi.open.ac.uk/open_dataset
+Kuzilek J., Hlosta M., Zdrahal Z. Open University Learning Analytics dataset Sci. Data 4:170171 doi: 10.1038/sdata.2017.171 (2017)
+License: CC-BY 4.0 License
+
+Ricci
+https://www.key2stats.com/data-set/view/690
+License: Public Domain (CC0)
+
+Students Mathematics and Portugues
+https://archive.ics.uci.edu/ml/datasets/student%2Bperformance
+P. Cortez and A. Silva. Using Data Mining to Predict Secondary School Student Performance. In A. Brito and J. Teixeira Eds., Proceedings of 5th FUture BUsiness TEChnology Conference (FUBUTEC 2008) pp. 5-12, Porto, Portugal, April, 2008, EUROSIS, ISBN 978-9077381-39-7
+License: CC-BY 4.0 License
+
+With thanks to the UCI Machine Learning repository
+Dua, D. and Graff, C. (2019). UCI Machine Learning Repository [http://archive.ics.uci.edu/ml]. Irvine, CA: University of California, School of Information and Computer Science.

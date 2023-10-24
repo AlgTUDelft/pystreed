@@ -1,0 +1,120 @@
+label: 	class: 50000+.
+
+f0 	race: White
+f1 	age<26
+f2 	age=26-61
+f3 	age>=61
+f4 	wage per hour<501
+f5 	wage per hour=501-1001
+f6 	wage per hour>=1001
+f7 	industry code<31
+f8 	occupation code<11
+f9 	capital gains<501
+f10 	capital losses<501
+f11 	dividens from stock<501
+f12 	dividens from stock=501-2001
+f13 	dividens from stock>=2001
+f14 	num persons worked for employer<1
+f15 	weeks worked in year<27
+f16 	weeks worked in year=27-52
+f17 	weeks worked in year>=52
+f18 	class of worker= Not in universe
+f19 	class of worker= Self-employed-not incorporated
+f20 	class of worker= Private
+f21 	class of worker= Local government
+f22 	class of worker= Federal government
+f23 	class of worker= Self-employed-incorporated
+f24 	class of worker= State government
+f25 	class of worker= Never worked
+f26 	class of worker= Without pay
+f27 	education= High school graduate
+f28 	education= Some college but no degree
+f29 	education= 10th grade
+f30 	education= Children
+f31 	education= Bachelors degree(BA AB BS)
+f32 	education= Masters degree(MA MS MEng MEd MSW MBA)
+f33 	education= Less than 1st grade
+f34 	education= Associates degree-academic program
+f35 	education= 7th and 8th grade
+f36 	education= 12th grade no diploma
+f37 	education= Associates degree-occup /vocational
+f38 	education= Prof school degree (MD DDS DVM LLB JD)
+f39 	education= 5th or 6th grade
+f40 	education= 11th grade
+f41 	education= 9th grade
+f42 	education= 1st 2nd 3rd or 4th grade
+f43 	education= Doctorate degree(PhD EdD)
+f44 	marital stat= Widowed
+f45 	marital stat= Divorced
+f46 	marital stat= Never married
+f47 	marital stat= Married-civilian spouse present
+f48 	marital stat= Separated
+f49 	marital stat= Married-spouse absent
+f50 	marital stat= Married-A F spouse present
+f51 	hispanic origin= All other
+f52 	hispanic origin= Do not know
+f53 	hispanic origin= Central or South American
+f54 	hispanic origin= Mexican (Mexicano)
+f55 	hispanic origin= Mexican-American
+f56 	hispanic origin= Other Spanish
+f57 	hispanic origin= Cuban
+f58 	hispanic origin= Puerto Rican
+f59 	hispanic origin= Chicano
+f60 	gender= Female
+f61 	member of a labor union= Not in universe
+f62 	member of a labor union= No
+f63 	member of a labor union= Yes
+f64 	reason for unemployment= Not in universe
+f65 	reason for unemployment= Job loser - on layoff
+f66 	reason for unemployment= Other job loser
+f67 	reason for unemployment= New entrant
+f68 	reason for unemployment= Re-entrant
+f69 	reason for unemployment= Job leaver
+f70 	full or part time employment stat= Not in labor force
+f71 	full or part time employment stat= Children or Armed Forces
+f72 	full or part time employment stat= Full-time schedules
+f73 	full or part time employment stat= Unemployed full-time
+f74 	full or part time employment stat= Unemployed part- time
+f75 	full or part time employment stat= PT for non-econ reasons usually FT
+f76 	full or part time employment stat= PT for econ reasons usually PT
+f77 	full or part time employment stat= PT for econ reasons usually FT
+f78 	tax filer stat= Nonfiler
+f79 	tax filer stat= Head of household
+f80 	tax filer stat= Joint both under 65
+f81 	tax filer stat= Single
+f82 	tax filer stat= Joint both 65+
+f83 	tax filer stat= Joint one under 65 & one 65+
+f84 	region of previous residence= Not in universe
+f85 	region of previous residence= South
+f86 	region of previous residence= Midwest
+f87 	region of previous residence= West
+f88 	region of previous residence= Northeast
+f89 	region of previous residence= Abroad
+f90 	detailed household summary in household= Other relative of householder
+f91 	detailed household summary in household= Householder
+f92 	detailed household summary in household= Child 18 or older
+f93 	detailed household summary in household= Child under 18 never married
+f94 	detailed household summary in household= Spouse of householder
+f95 	detailed household summary in household= Nonrelative of householder
+f96 	detailed household summary in household= Group Quarters- Secondary individual
+f97 	detailed household summary in household= Child under 18 ever married
+f98 	family members under 18= Not in universe
+f99 	family members under 18= Both parents present
+f100 	family members under 18= Neither parent present
+f101 	family members under 18= Mother only present
+f102 	family members under 18= Father only present
+f103 	citizenship= Native- Born in the United States
+f104 	citizenship= Foreign born- Not a citizen of U S 
+f105 	citizenship= Foreign born- U S citizen by naturalization
+f106 	citizenship= Native- Born abroad of American Parent(s)
+f107 	citizenship= Native- Born in Puerto Rico or U S Outlying
+f108 	own business or self-employed=0
+f109 	own business or self-employed=2
+f110 	own business or self-employed=1
+f111 	fill inc questionnaire for veteran's admin= Not in universe
+f112 	fill inc questionnaire for veteran's admin= No
+f113 	fill inc questionnaire for veteran's admin= Yes
+f114 	veterans benefits=2
+f115 	veterans benefits=0
+f116 	veterans benefits=1
+f117 	year=95

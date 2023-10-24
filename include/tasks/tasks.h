@@ -1,0 +1,11 @@
+#pragma once
+#include "tasks/optimization_task.h"
+
+#include "tasks/accuracy/accuracy.h"
+#include "tasks/accuracy/cost_complex_accuracy.h"
+
+#include "tasks/cost_sensitive.h"
+#include "tasks/f1score.h"
+#include "tasks/group_fairness.h"
+#include "tasks/eq_opp.h"
+#include "tasks/prescriptive_policy.h"

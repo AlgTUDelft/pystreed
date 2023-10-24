@@ -1,0 +1,72 @@
+label: 	Creditability
+
+f0 	Gender=Male
+f1 	Account Balance=1
+f2 	Account Balance=2
+f3 	Account Balance=4
+f4 	Account Balance=3
+f5 	Duration of Credit (month)<7
+f6 	Duration of Credit (month)=7-13
+f7 	Duration of Credit (month)>=13
+f8 	Payment Status of Previous Credit=4
+f9 	Payment Status of Previous Credit=2
+f10 	Payment Status of Previous Credit=3
+f11 	Payment Status of Previous Credit=0
+f12 	Payment Status of Previous Credit=1
+f13 	Purpose=2
+f14 	Purpose=0
+f15 	Purpose=9
+f16 	Purpose=3
+f17 	Purpose=1
+f18 	Purpose=10
+f19 	Purpose=5
+f20 	Purpose=4
+f21 	Purpose=6
+f22 	Purpose=8
+f23 	Credit Amount<2000
+f24 	Credit Amount=2000-5000
+f25 	Credit Amount>=5000
+f26 	Value Savings/Stocks=1
+f27 	Value Savings/Stocks=2
+f28 	Value Savings/Stocks=3
+f29 	Value Savings/Stocks=5
+f30 	Value Savings/Stocks=4
+f31 	Length of current employment=2
+f32 	Length of current employment=3
+f33 	Length of current employment=4
+f34 	Length of current employment=1
+f35 	Length of current employment=5
+f36 	Instalment per cent=4
+f37 	Instalment per cent=2
+f38 	Instalment per cent=3
+f39 	Instalment per cent=1
+f40 	Married
+f41 	Guarantors=1
+f42 	Guarantors=3
+f43 	Guarantors=2
+f44 	Duration in Current address=4
+f45 	Duration in Current address=2
+f46 	Duration in Current address=3
+f47 	Duration in Current address=1
+f48 	Most valuable available asset=2
+f49 	Most valuable available asset=1
+f50 	Most valuable available asset=3
+f51 	Most valuable available asset=4
+f52 	Age (years)<26
+f53 	Concurrent Credits=3
+f54 	Concurrent Credits=1
+f55 	Concurrent Credits=2
+f56 	Type of apartment=1
+f57 	Type of apartment=2
+f58 	Type of apartment=3
+f59 	No of Credits at this Bank=1
+f60 	No of Credits at this Bank=2
+f61 	No of Credits at this Bank=3
+f62 	No of Credits at this Bank=4
+f63 	Occupation=3
+f64 	Occupation=2
+f65 	Occupation=1
+f66 	Occupation=4
+f67 	No of dependents=1
+f68 	Telephone=1
+f69 	Foreign Worker=1

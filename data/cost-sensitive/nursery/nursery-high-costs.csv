@@ -1,0 +1,14 @@
+0 93 93 93 93
+75 0 75 75 75
+190792 190792 0 190792 190792
+147 147 147 0 147
+844 844 844 844 0
+Attribute-name test-cost discount group binarize-begin binarize-end
+finance 8.21288 1.64258 a 0 0
+children 9.86595 3.29564 a 1 4
+housing 10.004 1.0 a 5 7
+parents 11.0199 4.44957 a 8 10
+hn 11.4081 11.4081 x 11 15
+social 15.8234 9.25308 a 16 18
+form 20.949 20.949 x 19 22
+health 98.6441 98.6441 x 23 25

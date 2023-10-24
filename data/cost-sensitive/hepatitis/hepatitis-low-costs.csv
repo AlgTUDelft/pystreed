@@ -1,0 +1,19 @@
+0 12
+3 0
+Attribute-name test-cost discount group binarize-begin binarize-end
+sex 1.0 1.0 x 0 0
+steroid 1.0 1.0 x 1 1
+antiviral 1.0 1.0 x 2 2
+fatigue 1.0 1.0 x 3 3
+malaise 1.0 1.0 x 4 4
+anorexia 1.0 1.0 x 5 5
+liverBig 1.0 1.0 x 6 6
+liverFirm 1.0 1.0 x 7 7
+spleen 1.0 1.0 x 8 8
+spiders 1.0 1.0 x 9 9
+ascites 1.0 1.0 x 10 10
+varices 1.0 1.0 x 11 11
+histology 1.0 1.0 x 12 12
+bilirubin 7.27 5.17 a 13 13
+albumin 7.27 5.17 a 14 16
+protime 8.3 6.2 a 17 19

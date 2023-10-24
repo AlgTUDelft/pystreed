@@ -1,0 +1,11 @@
+0 75 75 75
+421 0 421 421
+24 24 0 24
+447 447 447 0
+Attribute-name test-cost discount group binarize-begin binarize-end
+maint 5.58562 5.58562 x 0 3
+lugboot 6.84251 6.84251 x 4 6
+doors 20.6264 20.6264 x 7 10
+buying 35.4139 7.08277 a 11 14
+persons 91.6271 63.296 a 15 17
+safety 98.6441 70.313 a 18 20

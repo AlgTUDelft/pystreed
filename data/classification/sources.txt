@@ -1,0 +1,123 @@
+When reusing the datasets in this repository, please refer to the sources as mentioned below:
+
+The UCI Machine Learning repository
+Dua, D. and Graff, C. (2019). UCI Machine Learning Repository [http://archive.ics.uci.edu/ml]. Irvine, CA: University of California, School of Information and Computer Science.
+
+Note that for some of the datasets, the referenced UCI dataset does not have the same number of instances as in our repository. We follow the dataset versions as described by Demirović, E., & Stuckey, P. J. (2021) Optimal decision trees for nonlinear metrics. In Proceedings of the AAAI conference on artificial intelligence (Vol. 35, No. 5, pp. 3733-3741).
+Source:
+- https://bitbucket.org/EmirD/murtree/src/master/datasetsDL/
+- https://bitbucket.org/EmirD/murtree/src/master/datasetsHu/
+
+Annealing
+https://archive.ics.uci.edu/ml/datasets/Annealing
+License: CC BY 4.0
+
+Audiology
+https://archive-beta.ics.uci.edu/dataset/8/audiology+standardized
+License: CC BY 4.0
+
+Australian-Credit
+https://archive-beta.ics.uci.edu/dataset/143/statlog+australian+credit+approval
+License: CC BY 4.0
+
+Breast-Wisconsin
+https://archive.ics.uci.edu/ml/datasets/breast+cancer+wisconsin+%28original%29
+1. O. L. Mangasarian and W. H. Wolberg: "Cancer diagnosis via linear programming", SIAM News, Volume 23, Number 5, September 1990, pp 1 & 18.
+2. William H. Wolberg and O.L. Mangasarian: "Multisurface method of pattern separation for medical diagnosis applied to breast cytology", Proceedings of the National Academy of Sciences, U.S.A., Volume 87, December 1990, pp 9193-9196.
+3. O. L. Mangasarian, R. Setiono, and W.H. Wolberg: "Pattern recognition via linear programming: Theory and application to medical diagnosis", in: "Large-scale numerical optimization", Thomas F. Coleman and Yuying Li, editors, SIAM Publications, Philadelphia 1990, pp 22-30.
+4. K. P. Bennett & O. L. Mangasarian: "Robust linear programming discrimination of two linearly inseparable sets", Optimization Methods and Software 1, 1992, 23-34 (Gordon & Breach Science Publishers).
+
+COMPAS
+https://github.com/propublica/compas-analysis
+Angwin, J., Larson, J., Mattu, S., & Kirchner, L. (2016). Machine Bias. ProPublica. 
+https://www.propublica.org/article/how-we-analyzed-the-compas-recidivism-algorithm
+No license information, therefore not included in this repository. The data can be obtained through the link
+
+Diabetes
+https://archive.ics.uci.edu/ml/datasets/diabetes
+License: CC BY 4.0
+
+Fico
+https://community.fico.com/s/explainable-machine-learning-challenge
+FICO xML Challenge found at community.fico.com/s/xml
+License: https://community.fico.com/s/explainable-machine-learning-challenge?tabset-158d9=2
+Redistribution not allowed, therefore not included in this repository
+
+German credit
+https://archive.ics.uci.edu/ml/datasets/statlog+(german+credit+data)
+License: CC BY 4.0
+
+Heart-Cleveland
+https://archive.ics.uci.edu/ml/datasets/heart+disease
+Andras Janosi, Hungarian Institute of Cardiology. Budapest
+William Steinbrunn, University Hospital, Zurich, Switzerland
+Matthias Pfisterer, University Hospital, Basel, Switzerland
+Robert Detrano, V.A. Medical Center, Long Beach and Cleveland Clinic Foundation
+License: CC BY 4.0
+
+Hepatitis
+https://archive.ics.uci.edu/ml/datasets/hepatitis
+License: CC BY 4.0
+
+Hypothyroid
+https://archive.ics.uci.edu/ml/datasets/thyroid+disease
+License: CC BY 4.0
+
+Ionosphere
+https://archive.ics.uci.edu/ml/datasets/ionosphere
+License: CC BY 4.0
+
+Kr-vs-kp (Chess King-Rook vs King-Pawn)
+https://archive.ics.uci.edu/ml/datasets/Chess+%28King-Rook+vs.+King-Pawn%29
+License: CC BY 4.0
+
+Letter
+https://archive.ics.uci.edu/ml/datasets/letter+recognition
+License: CC BY 4.0
+
+Lymph
+https://archive.ics.uci.edu/ml/datasets/Lymphography
+M. Zwitter and M. Soklic, University Medical Centre, Institute of Oncology, Ljubljana, Yugoslavia
+License: CC BY 4.0
+
+Mushroom
+https://archive.ics.uci.edu/ml/datasets/mushroom
+License: CC BY 4.0
+
+Pendigits
+http://archive.ics.uci.edu/ml/datasets/pen-based+recognition+of+handwritten+digits
+License: CC BY 4.0
+
+Primary Tumor
+https://archive.ics.uci.edu/ml/datasets/primary+tumor
+M. Zwitter and M. Soklic, University Medical Centre, Institute of Oncology, Ljubljana, Yugoslavia
+License: CC BY 4.0
+
+Segment
+https://archive.ics.uci.edu/ml/datasets/Statlog+%28Image+Segmentation%29
+License: CC BY 4.0
+
+Soybean
+https://archive.ics.uci.edu/ml/datasets/Soybean+(Large)
+License: CC BY 4.0
+
+Splice-1
+https://archive.ics.uci.edu/ml/datasets/Molecular+Biology+(Splice-junction+Gene+Sequences)
+License: CC BY 4.0
+
+Tic-tac-toe
+https://archive.ics.uci.edu/ml/datasets/tic-tac-toe+Endgame
+License: CC BY 4.0
+
+Vehicle
+https://archive.ics.uci.edu/ml/datasets/Statlog+%28Vehicle+Silhouettes%29
+Turing Institute, Glasgow, Scotland
+License: CC BY 4.0
+
+Vote
+https://archive.ics.uci.edu/ml/datasets/congressional+voting+records
+License: CC BY 4.0
+
+Yeast
+https://archive.ics.uci.edu/ml/datasets/Yeast
+License: CC BY 4.0

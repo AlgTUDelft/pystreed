@@ -1,0 +1,7 @@
+International Warfarin Pharmacogenetics Consortium. Estimation of the Warfarin Dose with Clinical and Pharmacogenetic Data. New England Journal of Medicine, 360(8):753–764, 2009.
+https://www.pharmgkb.org/downloads
+https://api.pharmgkb.org/v1/download/submission/553247439
+https://www.pharmgkb.org/literature/6318341
+
+License: CC BY-SA 4.0
+https://www.pharmgkb.org/page/dataUsagePolicy

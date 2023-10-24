@@ -1,0 +1,48 @@
+label: 	final_result:Pass
+
+f0 	gender:M
+f1 	num_of_prev_attempts<1
+f2 	studied_credits<101
+f3 	code_module=AAA
+f4 	code_module=BBB
+f5 	code_module=CCC
+f6 	code_module=DDD
+f7 	code_module=EEE
+f8 	code_module=FFF
+f9 	code_module=GGG
+f10 	code_presentation=2013J
+f11 	code_presentation=2014J
+f12 	code_presentation=2013B
+f13 	code_presentation=2014B
+f14 	region=East Anglian Region
+f15 	region=Scotland
+f16 	region=South East Region
+f17 	region=West Midlands Region
+f18 	region=Wales
+f19 	region=North Western Region
+f20 	region=South Region
+f21 	region=South West Region
+f22 	region=East Midlands Region
+f23 	region=Yorkshire Region
+f24 	region=London Region
+f25 	region=North Region
+f26 	region=Ireland
+f27 	highest_education=HE Qualification
+f28 	highest_education=A Level or Equivalent
+f29 	highest_education=Lower Than A Level
+f30 	highest_education=Post Graduate Qualification
+f31 	highest_education=No Formal quals
+f32 	imd_band=90-100%
+f33 	imd_band=20-30%
+f34 	imd_band=50-60%
+f35 	imd_band=80-90%
+f36 	imd_band=30-40%
+f37 	imd_band=70-80%
+f38 	imd_band=60-70%
+f39 	imd_band=40-50%
+f40 	imd_band=10-20% 
+f41 	imd_band=0-10%
+f42 	age_band=55<=
+f43 	age_band=35-55
+f44 	age_band=0-35
+f45 	disability=N

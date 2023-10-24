@@ -1,0 +1,14 @@
+0 455
+531 0
+Attribute-name test-cost discount group binarize-begin binarize-end
+age 1.0 1.0 x 0 0
+sex 1.0 1.0 x 1 1
+pain 1.0 1.0 x 2 5
+fbs 5.2 5.2 x 6 6
+restecg 15.5 15.5 x 7 9
+exang 87.3 87.3 x 10 10
+oldpeak 87.3 87.3 x 11 11
+slope 87.3 87.3 x 12 14
+fca 100.9 100.9 x 15 15
+thal 102.9 1.0 a 16 18
+thalach 102.9 1.0 a 19 19

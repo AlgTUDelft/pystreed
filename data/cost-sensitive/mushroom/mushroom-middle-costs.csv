@@ -1,0 +1,24 @@
+0 20
+21 0
+Attribute-name test-cost discount group binarize-begin binarize-end
+bruises 1.0 1.0 x 0 0
+odor 1.0 1.0 x 1 9
+pop 1.0 1.0 x 10 15
+hab 1.0 1.0 x 16 22
+ss 2.0 2.0 x 23 23
+sr 2.0 2.0 x 24 28
+ssar 2.0 2.0 x 29 32
+ssbr 2.0 2.0 x 33 36
+scar 2.0 2.0 x 37 45
+scbr 2.0 2.0 x 46 54
+ga 3.0 3.0 x 55 55
+gs 3.0 3.0 x 56 56
+gsize 3.0 3.0 x 57 57
+gc 3.0 3.0 x 58 69
+cs 4.0 4.0 x 70 75
+csur 4.0 4.0 x 76 79
+cc 4.0 4.0 x 80 89
+rn 5.0 5.0 x 90 92
+rt 5.0 5.0 x 93 97
+spc 6.0 6.0 x 98 106
+vc 7.0 7.0 x 107 110

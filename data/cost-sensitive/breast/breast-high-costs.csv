@@ -1,0 +1,12 @@
+0 250
+605 0
+Attribute-name test-cost discount group binarize-begin binarize-end
+breast 5.02877 5.02877 x 0 0
+menopause 9.2464 1.84928 a 1 3
+brstqud 18.4302 18.4302 x 4 8
+age 24.2124 16.8152 a 9 14
+irradiat 40.8691 40.8691 x 15 15
+tumorsize 41.8689 41.8689 x 16 26
+nodecaps 61.1264 53.7293 a 27 27
+degmalig 75.1722 75.1722 x 28 30
+invnodes 93.0188 93.0188 x 31 37
