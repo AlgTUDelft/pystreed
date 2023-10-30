@@ -1,3 +1,6 @@
+[![CMake build](https://github.com/algtudelft/pystreed/actions/workflows/cmake.yml/badge.svg)](https://github.com/algtudelft/pystreed/actions/workflows/cmake.yml)
+[![Pip install](https://github.com/algtudelft/pystreed/actions/workflows/pip.yml/badge.svg)](https://github.com/algtudelft/pystreed/actions/workflows/pip.yml)
+
 # STreeD: Separable Trees with Dynamic programming
 By: Jacobus G. M. van der Linden
 
@@ -26,7 +29,7 @@ from sklearn.metrics import accuracy_score
 import pandas as pd
 
 # Read data
-df = pd.read_csv("data/accuracy/anneal.csv", sep=" ", header=None)
+df = pd.read_csv("data/classification/anneal.csv", sep=" ", header=None)
 X = df[df.columns[1:]]
 y = df[0]
 

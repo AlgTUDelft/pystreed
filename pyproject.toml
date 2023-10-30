@@ -4,7 +4,7 @@ requires = [
     "pybind11>=2.10.0"
 ]
 build-backend = "setuptools.build_meta"
-target-version = "py37"
+target-version = "py38"
 
 [project]
 name = "pystreed"
@@ -22,7 +22,7 @@ maintainers = [
 dependencies =[
     "pandas>=1.0.0",
     "numpy>=1.18.0",
-    "scikit-learn >=1.2.0,<1.3"
+    "scikit-learn >=1.2.0"
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
