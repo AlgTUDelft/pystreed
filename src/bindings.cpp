@@ -42,8 +42,8 @@ void NumpyToSTreeDData(const py::array_t<int, py::array::c_style>& _X,
                         AData& data, ADataView& data_view) {
     const bool regression = std::is_same<LT, double>::value;
     std::vector<const AInstance*> instances;
-    auto X = _X.unchecked<2>();
-    auto y = _y.unchecked<1>();
+    auto X = _X.template unchecked<2>(); // Template keyword because of a bug in the clang compiler
+    auto y = _y.template unchecked<1>(); // Template keyword because of a bug in the clang compiler
     const int num_instances = int(X.shape(0));
     const int num_features = int(X.shape(1));
     
@@ -74,7 +74,7 @@ void NumpyToSTreeDData(const py::array_t<int, py::array::c_style>& _X,
 }
 
 std::vector<bool> NumpyRowToBoolVector(const py::array_t<int, py::array::c_style>& _X) {
-    auto X = _X.unchecked<1>();
+    auto X = _X.template unchecked<1>(); // Template keyword because of a bug in the clang compiler
     std::vector<bool> v(X.shape(0));
     for (py::size_t j = 0; j < X.shape(0); j++) {
         v[j] = X(j);

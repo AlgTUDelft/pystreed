@@ -180,7 +180,7 @@ void EnumerateSolverSetupOptions(std::vector<SolverSetup>& solver_setups) {
 
 void GetF1ScoreTests(std::vector<F1ScoreTestSetup>& f1_score_tests) {
 	f1_score_tests.push_back({
-		"data/f1score/yeast.csv", 2, 3, { /*										  
+		"data/classification/yeast.csv", 2, 3, { /*										  
 			{0, 823}, {1, 784}, {2, 756}, {6, 753}, {9, 733}, {11, 701}, {18, 692}, {21, 679}, {22, 663}, {26, 628}, 
 		{33, 605}, {35, 573}, {42, 564}, {45, 551}, {54, 548}, {59, 532}, {64, 521}, {67, 501}, {73, 491}, {77, 463},
 		{96, 460}, {97, 456}, {104, 420}, {113, 377}, {139, 372}, {140, 367}, {147, 364}, {154, 358}, {156, 321}, {167, 301},
