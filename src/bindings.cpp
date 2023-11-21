@@ -42,8 +42,8 @@ void NumpyToSTreeDData(const py::array_t<int, py::array::c_style>& _X,
                         AData& data, ADataView& data_view) {
     const bool regression = std::is_same<LT, double>::value;
     std::vector<const AInstance*> instances;
-    auto X = _X.template unchecked<2>(); // Template keyword because of a bug in the clang compiler
-    auto y = _y.template unchecked<1>(); // Template keyword because of a bug in the clang compiler
+    auto X = _X.template unchecked<2>();
+    auto y = _y.template unchecked<1>();
     const int num_instances = int(X.shape(0));
     const int num_features = int(X.shape(1));
     
@@ -74,7 +74,7 @@ void NumpyToSTreeDData(const py::array_t<int, py::array::c_style>& _X,
 }
 
 std::vector<bool> NumpyRowToBoolVector(const py::array_t<int, py::array::c_style>& _X) {
-    auto X = _X.template unchecked<1>(); // Template keyword because of a bug in the clang compiler
+    auto X = _X.template unchecked<1>();
     std::vector<bool> v(X.shape(0));
     for (py::size_t j = 0; j < X.shape(0); j++) {
         v[j] = X(j);
@@ -192,6 +192,8 @@ PYBIND11_MODULE(cstreed, m) {
     ************************************/
     py::class_<SolverResult, std::shared_ptr<SolverResult>> solver_result(m, "SolverResult");
 
+    solver_result.def("is_feasible", &SolverResult::IsFeasible);
+
     solver_result.def("is_optimal", [](const SolverResult &solver_result) {
         py::scoped_ostream_redirect stream(std::cout, py::module_::import("sys").attr("stdout"));
         return solver_result.IsProvenOptimal();
@@ -240,6 +242,7 @@ PYBIND11_MODULE(cstreed, m) {
     ExposeBooleanProperty(parameter_handler, "use-similarity-lower-bound", "use_similarity_lower_bound");
     ExposeBooleanProperty(parameter_handler, "use-upper-bound", "use_upper_bound");
     ExposeBooleanProperty(parameter_handler, "use-lower-bound", "use_lower_bound");
+    ExposeFloatProperty(parameter_handler, "upper-bound", "upper_bound");
     ExposeStringProperty(parameter_handler, "ppg-teacher-method", "ppg_teacher_method");
     ExposeFloatProperty(parameter_handler, "discrimination-limit", "discrimination_limit");
     

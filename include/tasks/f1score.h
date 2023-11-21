@@ -103,6 +103,10 @@ namespace STreeD {
 		inline static void MergeInv(const F1ScoreSol& s1, const F1ScoreSol& s2, F1ScoreSol& out) {
 			out = { std::max(s1.false_negatives, s2.false_negatives), std::max(s1.false_positives, s2.false_positives) };
 		}
+
+		inline static std::vector<F1ScoreSol> ExtremePoints() {
+			return { {0, INT32_MAX}, {INT32_MAX, 0} };
+		}
 	};
 
 }

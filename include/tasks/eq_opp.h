@@ -152,6 +152,10 @@ namespace STreeD {
 			};
 		}
 
+		inline static std::vector<EqOppSol> ExtremePoints() {
+			return { {INT32_MAX, 0, 0}, {0, 1, 0}, {0, 0, 1} };
+		}
+
 		inline bool SatisfiesConstraint(const Node<EqOpp>& sol, const BranchContext& context) {
 			double disc = std::max(sol.solution.group0_score, sol.solution.group1_score) - 1;
 			return disc <= discrimination_limit;

@@ -8,7 +8,7 @@ target-version = "py38"
 
 [project]
 name = "pystreed"
-version = "1.0.0"
+version = "1.1.0"
 description = "Python Implementation of STreeD: Dynamic Programming Approach for Optimal Decision Trees with Separable objectives and Constraints"
 license=  {file = "LICENSE"}
 authors = [

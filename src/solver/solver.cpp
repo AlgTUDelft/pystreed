@@ -58,6 +58,10 @@ namespace STreeD {
 		auto result = InitializeSol<OT>();
 		if (CheckEmptySol<OT>(global_UB)) {
 			global_UB = InitializeSol<OT>();
+			// If an upper bound is provided, and the objective is numeric, add it to the UB
+			if constexpr (std::is_same<Solver<OT>::SolType, double>::value || std::is_same<Solver<OT>::SolType, int>::value) {
+				AddSol<OT>(global_UB, Node<OT>(parameters.GetFloatParameter("upper-bound")));
+			}
 			result = SolveLeafNode(train_data, root_context, global_UB);
 		}
 
@@ -77,12 +81,14 @@ namespace STreeD {
 		auto solver_result = std::make_shared<SolverTaskResult<OT>>();
 		solver_result->is_proven_optimal = stopwatch.IsWithinTimeLimit();
 		if constexpr (OT::total_order) {
-			clock_t clock_start = clock();
-			auto tree = ConstructOptimalTree(result, train_data, root_context, int(parameters.GetIntegerParameter("max-depth")), result.NumNodes());
-			stats.time_reconstructing += double(clock() - clock_start) / CLOCKS_PER_SEC;
-			auto score = InternalTrainScore<OT>::ComputeTrainPerformance(&data_splitter, task, tree.get(), train_data);
-			tree->FlipFlippedFeatures(flipped_features);
-			solver_result->AddSolution(tree, score);
+			if (result.IsFeasible()) {
+				clock_t clock_start = clock();
+				auto tree = ConstructOptimalTree(result, train_data, root_context, int(parameters.GetIntegerParameter("max-depth")), result.NumNodes());
+				stats.time_reconstructing += double(clock() - clock_start) / CLOCKS_PER_SEC;
+				auto score = InternalTrainScore<OT>::ComputeTrainPerformance(&data_splitter, task, tree.get(), train_data);
+				tree->FlipFlippedFeatures(flipped_features);
+				solver_result->AddSolution(tree, score);
+			}
 		} else {
 			for (auto& s : result->GetSolutions()) {
 				clock_t clock_start = clock();
@@ -635,19 +641,48 @@ namespace STreeD {
 				sols_ptr = &small_sols;
 			}
 
-
-			// For each solution, substract it from the current UB
-			for (size_t i = 0; i < (*UB_ptr)->Size(); i++) {
+			Solver<OT>::SolContainer corner_union = InitializeSol<OT>();
+			Solver<OT>::SolContainer sub_union = InitializeSol<OT>();
+			auto extreme_points = OT::ExtremePoints();
+			for (size_t j = 0; j < (*sols_ptr)->Size(); j++) {
 				Solver<OT>::SolContainer sub_ub = InitializeSol<OT>();
-				for (size_t j = 0; j < (*sols_ptr)->Size(); j++) {
-					OT::Subtract((*UB_ptr)->GetSolutions()[i].solution, (*sols_ptr)->GetSolutions()[j].solution, diffsol.solution);
-					// For each current UB-solution - other branch solution, keep only the non-dominated solutions
-					// If exceeding the size, Merge two solutions such that the combined solution is worse than both
-					sub_ub->AddOrInvMerge(diffsol, MAX_SIZE);
+				for (size_t i = 0; i < (*UB_ptr)->Size(); i++) {
+					OT::Subtract((*UB_ptr)->Get(i).solution, (*sols_ptr)->Get(j).solution, diffsol.solution);
+					//sub_ub->AddOrInvMerge(diffsol, MAX_SIZE);
+					sub_ub->Add(diffsol);
 				}
-				// For each set of solutions, add to the new UB and use reverse-nondom to decided what to keep
-				updatedUB->AddInvOrInvMerge(*(sub_ub.get()), MAX_SIZE);
+				for (auto& ep : extreme_points) {
+					sub_ub->Add(Node<OT>(ep));
+				}
+
+				// Compute 'staircase corners'
+				Solver<OT>::SolContainer corners = InitializeSol<OT>();
+				for (size_t i = 0; i < sub_ub->Size(); i++) {
+					for (size_t k = i + 1; k < sub_ub->Size(); k++) {
+						OT::MergeInv(sub_ub->Get(i).solution, sub_ub->Get(k).solution, diffsol.solution);
+						//corners->AddOrInvMerge(diffsol, MAX_SIZE);
+						corners->Add(diffsol);
+					}
+				}
+				//corner_union->AddInvOrInvMerge(*(corners.get()), MAX_SIZE);
+				//sub_union->AddInvOrInvMerge(*(sub_ub.get()), MAX_SIZE);
+				
+				corner_union->AddInv(*(corners.get()));
+				sub_union->AddInv(*(sub_ub.get()));
 			}
+			// Compute 'staircase corners'
+			for (auto& ep : extreme_points) {
+				corner_union->Add(Node<OT>(ep));
+			}
+			for (size_t i = 0; i < corner_union->Size(); i++) {
+				for (size_t k = i + 1; k < corner_union->Size(); k++) {
+					OT::Merge(corner_union->Get(i).solution, corner_union->Get(k).solution, diffsol.solution);
+					updatedUB->AddInvOrInvMerge(diffsol, MAX_SIZE);
+				}
+			}
+			updatedUB->AddInvOrInvMerge(*(sub_union.get()), MAX_SIZE);
+			//updatedUB->AddOrInvMerge(*(UB_ptr->get()), MAX_SIZE);
+			
 		}
 		// In the root nod of the search, feasible solutions can be relaxed by removing information that is related
 		// to constraint satisfaction from the solution

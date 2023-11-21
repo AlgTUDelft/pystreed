@@ -186,6 +186,15 @@ namespace STreeD {
 			"Algorithmic Parameters"
 		);
 
+		parameters.DefineFloatParameter(
+			"upper-bound",
+			"Search for a tree better than the provided upper bound (numeric).",
+			INT32_MAX, // default
+			"Algorithmic Parameters",
+			0.0, // min
+			DBL_MAX // max
+		);
+
 		parameters.DefineStringParameter
 		(
 			"feature-ordering",

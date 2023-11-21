@@ -24,6 +24,7 @@ class BaseSTreeDSolver(BaseEstimator):
         "time_limit": [Interval(numbers.Real, 0, None, closed="neither")],
         "cost_complexity": [Interval(numbers.Real, 0, 1, closed="both")],
         "feature_ordering": [StrOptions({"in-order", "gini"})],
+        "upper_bound": [Interval(numbers.Real, 0, None, closed="left")],
         "random_seed": [Interval(numbers.Integral, -1, None, closed="left")],
         "n_thresholds": [Interval(numbers.Integral, 1, None, closed="left")],
         "n_categories": [Interval(numbers.Integral, 2, None, closed="left")],
@@ -45,6 +46,7 @@ class BaseSTreeDSolver(BaseEstimator):
             use_similarity_lower_bound: bool = True,
             use_upper_bound: bool = True,
             use_lower_bound: bool = True,
+            upper_bound: float = 2**31-1,
             verbose: bool = False,
             random_seed: int = 27, 
             continuous_binarize_strategy: str = 'quantile',
@@ -68,6 +70,7 @@ class BaseSTreeDSolver(BaseEstimator):
             use_similarity_lower_bound: Enable/Disable the similarity lower bound (Enabled typically results in a large runtime advantage)
             use_upper_bound: Enable/Disable the use of upper bounds (Enabled is typically faster)
             use_lower_bound: Enable/Disable the use of lower bounds (Enabled is typically faster)
+            upper_bound: Search for a tree better than the provided upper bound
             verbose: Enable/Disable verbose output
             random_seed: the random seed used by the solver (for example when creating folds)
             continuous_binarization_strategy: the strategy used for binarizing continuous features
@@ -89,6 +92,7 @@ class BaseSTreeDSolver(BaseEstimator):
         self.use_similarity_lower_bound = use_similarity_lower_bound
         self.use_upper_bound = use_upper_bound
         self.use_lower_bound = use_lower_bound
+        self.upper_bound = upper_bound
         self.verbose = verbose
         self.random_seed = random_seed
         self.continuous_binarize_strategy = continuous_binarize_strategy
@@ -130,6 +134,7 @@ class BaseSTreeDSolver(BaseEstimator):
         self._params.use_similarity_lower_bound = self.use_similarity_lower_bound
         self._params.use_upper_bound = self.use_upper_bound
         self._params.use_lower_bound = self.use_lower_bound
+        self._params.upper_bound = self.upper_bound
     
     def get_solver_params(self):
         return self._solver._get_parameters()
@@ -258,16 +263,22 @@ class BaseSTreeDSolver(BaseEstimator):
         
         if duration > self.time_limit:
             warnings.warn("Fitting exceeds time limit.", stacklevel=2)
+        if not self.fit_result.is_feasible():
+            warnings.warn("No feasible tree found.", stacklevel=2)
+            delattr(self, "fit_result")
+        else:
+            self.tree_ = self._solver._get_tree(self.fit_result)
 
-        self.tree_ = self._solver._get_tree(self.fit_result)
-
-        if self.verbose:
+        if self.is_fitted() and self.verbose:
             print("Training score: ", self.fit_result.score())
             print("Tree depth: ", self.fit_result.tree_depth(), " \tBranching nodes: ", self.fit_result.tree_nodes())
             if not self.fit_result.is_optimal():
                 print("No proof of optimality!")
         
         return self
+
+    def is_fitted(self):
+        return hasattr(self, "fit_result")
 
     def predict(self, X, extra_data=None):
         """

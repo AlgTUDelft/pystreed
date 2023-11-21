@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
 				std::cout << std::setprecision (std::numeric_limits<double>::digits10 + 1) << test_score->score << " \t"; 
 				std::cout << test_score->average_path_length << std::endl;
 
-				std::cout << "Tree " << i << ": " << result->tree_strings[i];
+				std::cout << "Tree " << i << ": " << result->tree_strings[i] << std::endl;
 				
 			}
 		} else {

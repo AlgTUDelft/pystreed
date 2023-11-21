@@ -4,6 +4,7 @@ from sklearn.utils._param_validation import Interval
 from pystreed.utils import _color_brew
 import numpy as np
 import numbers
+import warnings
 
 class STreeDClassifier(BaseSTreeDSolver):
     """
@@ -26,6 +27,7 @@ class STreeDClassifier(BaseSTreeDSolver):
                  use_similarity_lower_bound: bool = True,
                  use_upper_bound: bool = True,
                  use_lower_bound: bool = True,
+                 upper_bound: float = 2**31 -1,
                  verbose : bool = False,
                  random_seed: int = 27, 
                  continuous_binarize_strategy: str = 'quantile',
@@ -50,6 +52,7 @@ class STreeDClassifier(BaseSTreeDSolver):
             use_similarity_lower_bound: Enable/Disable the similarity lower bound (Enabled typically results in a large runtime advantage)
             use_upper_bound: Enable/Disable the use of upper bounds (Enabled is typically faster)
             use_lower_bound: Enable/Disable the use of lower bounds (Enabled is typically faster)
+            upper_bound: Search for a tree better than the provided upper bound
             verbose: Enable/Disable verbose output
             random_seed: the random seed used by the solver (for example when creating folds)
             continuous_binarization_strategy: the strategy used for binarizing continuous features
@@ -72,11 +75,14 @@ class STreeDClassifier(BaseSTreeDSolver):
             use_similarity_lower_bound=use_similarity_lower_bound,
             use_upper_bound=use_upper_bound,
             use_lower_bound=use_lower_bound,
+            upper_bound=upper_bound,
             verbose=verbose,
             random_seed=random_seed,
             continuous_binarize_strategy=continuous_binarize_strategy,
             n_thresholds=n_thresholds,
             n_categories=n_categories)
+        if optimization_task == "f1-score" and upper_bound != 2**31-1:
+            warnings.warn(f"upper_bound parameter is ignored for f1-score", stacklevel=2)
         
     def _initialize_param_handler(self):
         super()._initialize_param_handler()

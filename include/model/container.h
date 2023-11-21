@@ -67,6 +67,9 @@ namespace STreeD {
 		
         // Get the solutions in this container
         inline const std::vector<Node<OT>>& GetSolutions() const { return solutions; }
+
+        // Get the ith solution in this container
+        inline const Node<OT>& Get(size_t ix) const { return solutions[ix]; }
 		
         // Get a mutable reference to the solution at index ix 
         inline Node<OT>& GetMutable(size_t ix) { return solutions[ix]; }

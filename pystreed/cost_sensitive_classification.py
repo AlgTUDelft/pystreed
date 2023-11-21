@@ -17,6 +17,7 @@ class STreeDCostSensitiveClassifier(BaseSTreeDSolver):
                  use_terminal_solver: bool = True,
                  use_upper_bound: bool = True,
                  use_lower_bound: bool = True,
+                 upper_bound: float = 2**31-1,
                  verbose : bool = False,
                  random_seed: int = 27):
         """
@@ -33,6 +34,7 @@ class STreeDCostSensitiveClassifier(BaseSTreeDSolver):
             use_terminal_solver: Enable/Disable the depth-two solver (Enabled typically results in a large runtime advantage)
             use_upper_bound: Enable/Disable the use of upper bounds (Enabled is typically faster)
             use_lower_bound: Enable/Disable the use of lower bounds (Enabled is typically faster)
+            upper_bound: Search for a tree better than the provided upper bound
             verbose: Enable/Disable verbose output
             random_seed: the random seed used by the solver (for example when creating folds)
         """
@@ -50,6 +52,7 @@ class STreeDCostSensitiveClassifier(BaseSTreeDSolver):
             use_similarity_lower_bound=False,
             use_upper_bound=use_upper_bound,
             use_lower_bound=use_lower_bound,
+            upper_bound=upper_bound,
             verbose=verbose,
             random_seed=random_seed)
         
