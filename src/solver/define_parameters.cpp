@@ -20,7 +20,7 @@ namespace STreeD {
 			"Task to optimize.",
 			"accuracy",
 			"Main Parameters",
-			{"accuracy", "cost-complex-accuracy", "f1-score", "group-fairness", 
+			{"accuracy", "cost-complex-accuracy", "f1-score", "group-fairness", "survival-analysis",
 			"equality-of-opportunity", "cost-sensitive", "prescriptive-policy" }
 		);
 

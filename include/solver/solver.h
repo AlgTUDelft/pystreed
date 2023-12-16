@@ -33,7 +33,6 @@ namespace STreeD {
 		bool verbose{ true };
 		bool use_terminal_solver{ true };
 		bool use_lower_bounding{ true };
-		bool use_task_lower_bounding{ true };
 		bool subtract_ub{ true };
 		bool use_upper_bounding{ true };
 		bool similarity_lb{ true };

@@ -24,6 +24,7 @@ namespace STreeD {
 		test_data = ADataView(&data, instances_per_label, {});
 	}
 
+	// Read the file(s) specified in parameters, stores the instances in data, and provides train and test dataviews in train_data and test_data
 	template <class OT>
 	void FileReader::ReadData(ParameterHandler& parameters, AData& data, ADataView& train_data, ADataView& test_data, std::default_random_engine* rng) {
 		std::string train_file = parameters.GetStringParameter("file");
@@ -77,7 +78,6 @@ namespace STreeD {
 	template<class LT, class ET>
 	void FileReader::ReadFromFile(AData& data, std::string filename, int num_extra_cols,
 		int num_instances, int initial_id, int duplicate_instances_factor) {
-		//runtime_assert(regression || std::is_same<typename LT, int>::value);
 		
 		std::ifstream file(filename.c_str());
 
@@ -164,6 +164,6 @@ namespace STreeD {
 	template void FileReader::ReadData<GroupFairness>(ParameterHandler&, AData&, ADataView&, ADataView&, std::default_random_engine*);
 	template void FileReader::ReadData<EqOpp>(ParameterHandler&, AData&, ADataView&, ADataView&, std::default_random_engine*);
 	template void FileReader::ReadData<PrescriptivePolicy>(ParameterHandler&, AData&, ADataView&, ADataView&, std::default_random_engine*);
-
+	template void FileReader::ReadData<SurvivalAnalysis>(ParameterHandler&, AData&, ADataView&, ADataView&, std::default_random_engine*);
 
 }

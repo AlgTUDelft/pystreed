@@ -12,7 +12,6 @@ namespace STreeD {
 		use_terminal_solver(parameters.GetBooleanParameter("use-terminal-solver")),
 		use_upper_bounding(parameters.GetBooleanParameter("use-upper-bound")),
 		use_lower_bounding(parameters.GetBooleanParameter("use-lower-bound")),
-		use_task_lower_bounding(false),
 		similarity_lb(parameters.GetBooleanParameter("use-similarity-lower-bound")),
 		minimum_leaf_node_size(int(parameters.GetIntegerParameter("min-leaf-node-size"))) { }
 
@@ -41,9 +40,13 @@ namespace STreeD {
 	template<class OT>
 	Solver<OT>::~Solver() {
 		if (cache != nullptr) delete cache;
-		if (terminal_solver1 != nullptr) delete terminal_solver1;
-		if (terminal_solver2 != nullptr) delete terminal_solver2;
-		if (similarity_lower_bound_computer != nullptr) delete similarity_lower_bound_computer;
+		if constexpr (OT::use_terminal) {
+			if (terminal_solver1 != nullptr) delete terminal_solver1;
+			if (terminal_solver2 != nullptr) delete terminal_solver2;
+		}
+		if constexpr (OT::element_additive) {
+			if (similarity_lower_bound_computer != nullptr) delete similarity_lower_bound_computer;
+		}
 		if (task != nullptr) delete task;
 	}
 
@@ -125,9 +128,13 @@ namespace STreeD {
 
 		// Reset the cache, data split cache, terminal solvers, sim-bound computer
 		if (cache != nullptr) delete cache;
-		if (terminal_solver1 != nullptr) delete terminal_solver1;
-		if (terminal_solver2 != nullptr) delete terminal_solver2;
-		if (similarity_lower_bound_computer != nullptr) delete similarity_lower_bound_computer;
+		if constexpr (OT::use_terminal) {
+			if (terminal_solver1 != nullptr) delete terminal_solver1;
+			if (terminal_solver2 != nullptr) delete terminal_solver2;
+		}
+		if constexpr (OT::element_additive) {
+			if (similarity_lower_bound_computer != nullptr) delete similarity_lower_bound_computer;
+		}
 		cache = new Cache<OT>(parameters, MAX_DEPTH, train_data.Size());
 		if (!solver_parameters.use_lower_bounding) cache->DisableLowerBoundCaching();
 		if constexpr (OT::use_terminal) {
@@ -205,13 +212,6 @@ namespace STreeD {
 
 			//Check LB > UB and return infeasible if true
 			auto lower_bound = cache->RetrieveLowerBound(data, branch, max_depth, num_nodes);
-
-			if constexpr (OT::custom_lower_bound) {
-				if (solver_parameters.use_task_lower_bounding) {
-					auto lb = task->ComputeLowerBound(data, branch, max_depth, num_nodes);
-					AddSolsInv<OT>(lower_bound, lb);
-				}
-			}
 			
 			if (solver_parameters.use_upper_bounding && LeftStrictDominatesRight<OT>(UB, lower_bound)) {
 				return InitializeSol<OT>();
@@ -255,12 +255,6 @@ namespace STreeD {
 		auto branch_lb = solver_parameters.use_lower_bounding
 			? cache->RetrieveLowerBound(data, branch, max_depth, num_nodes)
 			: InitializeSol<OT>(true);
-		if constexpr (OT::custom_lower_bound) {
-			if (solver_parameters.use_task_lower_bounding) {
-				auto lb = task->ComputeLowerBound(data, branch, max_depth, num_nodes);
-				AddSolsInv<OT>(branch_lb, lb);
-			}
-		}
 
 		// Initialize the feature selector
 		std::unique_ptr<FeatureSelectorAbstract> feature_selector;
@@ -504,15 +498,6 @@ namespace STreeD {
 			//if (right_lower_bound->Size() > 0) stats.num_cache_hit_nonzero_bound++;
 			left_lower_bound = cache->RetrieveLowerBound(left_data, left_branch, left_depth, left_nodes);
 			//if (left_lower_bound->Size() > 0) stats.num_cache_hit_nonzero_bound++;
-
-			if constexpr (OT::custom_lower_bound) {
-				if (solver_parameters.use_task_lower_bounding) {
-					auto right_lb = task->ComputeLowerBound(right_data, right_branch, right_depth, right_nodes);
-					AddSolsInv<OT>(right_lower_bound, lb);
-					auto left_lb = task->ComputeLowerBound(left_data, left_branch, left_depth, left_nodes);
-					AddSolsInv<OT>(left_lower_bound, lb);
-				}
-			}
 
 			if constexpr (OT::total_order) {
 				CombineSols(feature, left_lower_bound, right_lower_bound, branching_costs, lb);
@@ -821,11 +806,18 @@ namespace STreeD {
 
 		// Special D1 reconstruct
 		bool d1 = max_depth == 1 || num_nodes == 1 || sol.NumNodes() == 1;
+		bool use_cache = cache->UseCache();
 
 		// Special D2 reconstruct
 		if constexpr (OT::use_terminal) {
 			if (!d1 && IsTerminalNode(max_depth, num_nodes)) {
-				return terminal_solver1->ConstructOptimalTree(sol, data, context, max_depth, num_nodes);
+				try {
+					return terminal_solver1->ConstructOptimalTree(sol, data, context, max_depth, num_nodes);
+				} catch (std::exception& e) {
+					// Could happen because of numerical instability, but could also refer to an actual error. 
+					// Check if the solution value is the same when the terminal-solver is not used.
+					use_cache = false; 
+				}
 			}
 		}
 
@@ -856,7 +848,6 @@ namespace STreeD {
 		int right_size = right_subtree_size;
 		Solver<OT>::SolContainer left_sols, right_sols;
 		
-		bool use_cache = cache->UseCache();
 		if (use_cache) {
 			const int max_size_subtree = std::min((1 << (max_depth - 1)) - 1, num_nodes - 1); //take the minimum between a full tree of max_depth or the number of nodes - 1
 			const int min_size_subtree = num_nodes - 1 - max_size_subtree;
@@ -1024,5 +1015,6 @@ namespace STreeD {
 	template class Solver<GroupFairness>;
 	template class Solver<EqOpp>;
 	template class Solver<PrescriptivePolicy>;
+	template class Solver<SurvivalAnalysis>;
 }
 

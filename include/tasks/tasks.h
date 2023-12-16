@@ -9,3 +9,4 @@
 #include "tasks/group_fairness.h"
 #include "tasks/eq_opp.h"
 #include "tasks/prescriptive_policy.h"
+#include "tasks/survival_analysis.h"

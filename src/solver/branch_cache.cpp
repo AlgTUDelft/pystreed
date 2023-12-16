@@ -213,11 +213,12 @@ namespace STreeD {
 
 	template class BranchCache<Accuracy>;
 	template class BranchCache<CostComplexAccuracy>;
-
+	
 	template class BranchCache<CostSensitive>;
 	template class BranchCache<F1Score>;
 	template class BranchCache<GroupFairness>;
 	template class BranchCache<EqOpp>;
 	template class BranchCache<PrescriptivePolicy>;
+	template class BranchCache<SurvivalAnalysis>;
 
 }

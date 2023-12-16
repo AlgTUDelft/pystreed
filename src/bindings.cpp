@@ -19,6 +19,7 @@ enum task_type {
     group_fairness,
     equality_of_opportunity,
     prescriptive_policy,
+    survival_analysis
 };
 
 task_type get_task_type_code(std::string& task) {
@@ -29,6 +30,7 @@ task_type get_task_type_code(std::string& task) {
     else if (task == "group-fairness") return group_fairness;
     else if (task == "equality-of-opportunity") return equality_of_opportunity;
     else if (task == "prescriptive-policy") return prescriptive_policy;
+    else if (task == "survival-analysis") return survival_analysis;
     else {
         std::cout << "Encountered unknown optimization task: " << task << std::endl;
         exit(1);
@@ -253,6 +255,7 @@ PYBIND11_MODULE(cstreed, m) {
     DefineSolver<Accuracy>(m, "Accuracy");
     DefineSolver<CostComplexAccuracy>(m, "CostComplexAccuracy");
     DefineSolver<F1Score>(m, "F1Score");
+    DefineSolver<SurvivalAnalysis>(m, "Survival");
     DefineSolver<PrescriptivePolicy>(m, "PrescriptivePolicy");
     DefineSolver<GroupFairness>(m, "GroupFairness");
     DefineSolver<EqOpp>(m, "EqOpp");
@@ -285,15 +288,19 @@ PYBIND11_MODULE(cstreed, m) {
             case group_fairness: solver = new Solver<GroupFairness>(parameters, &rng); break;
             case equality_of_opportunity: solver = new Solver<EqOpp>(parameters, &rng); break;
             case prescriptive_policy: solver = new Solver<PrescriptivePolicy>(parameters, &rng); break;
+            case survival_analysis: solver = new Solver<SurvivalAnalysis>(parameters, &rng); break;
         }
         return solver;
     }, py::keep_alive<0, 1>());
-
-
     
     /*************************************
            Extra Data
      ************************************/
+
+    py::class_<SAData>(m, "SAData")
+        .def(py::init<int, double>())
+        .def_property_readonly("event", &SAData::GetEvent)
+        .def_property_readonly("hazard", &SAData::GetHazard);
 
     py::class_<PPGData>(m, "PPGData")
         .def(py::init<int, double, double, std::vector<double>&, int, std::vector<double>&>())
@@ -305,7 +312,6 @@ PYBIND11_MODULE(cstreed, m) {
         .def_readonly("predicted_outcome", &PPGData::yhat)
         .def_readonly("optimal_treatment", &PPGData::k_opt)
         .def_readonly("counterfactual_outcome", &PPGData::cf_y);
-
         
     /*************************************
            Label

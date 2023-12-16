@@ -28,6 +28,14 @@ def get_column_types(X, categorical_columns=None):
         raise ValueError("X should be either a numpy array or a pandas data frame.")
     return binary_columns, categorical_columns, continuous_columns
 
+def _escape(obj):
+    if isinstance(obj, list):
+        return [_escape(j) for j in obj]
+    elif isinstance(obj, str):
+        return obj.replace("'", "\\'")
+    else:
+        return obj
+
 class Binarizer:
 
     def __init__(self, continuous_strategy, n_thresholds, n_categories, categorical_columns):
@@ -103,6 +111,8 @@ class Binarizer:
             parts.append(X_cont)
                 
         if isinstance(X, pd.DataFrame):
+            for p in parts:
+                p.index = X.index
             return pd.concat(parts, axis=1)
         return np.concatenate(parts, axis=1)
 
@@ -170,14 +180,28 @@ class CategoricalBinarizer(BaseEstimator, TransformerMixin):
                 value = counter.most_common(2)[1][0] # get the key of the second most common value
                 n_categories[jj] = 1
                 categories.append([value])
-                column_names.append([f"{column_name} = {value}"])
+                escaped_value = _escape(value)
+                if isinstance(escaped_value, str):
+                    column_names.append([f"{column_name} == '{value}'"])
+                else:
+                    column_names.append([f"{column_name} == {value}"])
                 continue
             values = list(counter.keys())
             if len(values) > n_categories[jj]:
                 values = values[:n_categories[jj] - 1] + [values[n_categories[jj] - 1:]]
             n_categories[jj] = len(values)
             categories.append(values)
-            column_names.append(["{} = {}".format(column_name, "OTHER" if isinstance(v, list) else v) for v in values])
+            new_column_names = []
+            escape_values = _escape(values)
+            for v in escape_values:
+                if isinstance(v, list):
+                    new_column_names.append("{} in [{}]".format(column_name, \
+                        ",".join([f"'{o}'" if isinstance(o, str) else str(o) for o in v])))
+                elif isinstance(v, str):
+                    new_column_names.append("{} == '{}'".format(column_name, v))
+                else:
+                    new_column_names.append("{} == {}".format(column_name, v))
+            column_names.append(new_column_names)
 
         self.n_categories_ = n_categories
         self.categories_ = categories
@@ -295,7 +319,7 @@ class KThresholdBinarizer(BaseEstimator, TransformerMixin):
                 cutpoints = sorted([t for t in model.tree_.threshold if t != sklearn.tree._tree.TREE_UNDEFINED])
             n_thresholds[jj] = len(cutpoints)
             thresholds.append(cutpoints)
-            column_names.append([f"{column_name} <= {_column_threshold(c)}" for c in cutpoints])
+            column_names.append([f"{column_name} <= {c}" for c in cutpoints])
         
         self.n_thresholds_ = n_thresholds
         self.thresholds_ = thresholds

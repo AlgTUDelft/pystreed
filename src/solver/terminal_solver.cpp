@@ -428,8 +428,11 @@ namespace STreeD {
 			}
 		}
 		if constexpr (OT::total_order) {
-			runtime_assert(left_solution.parent.IsFeasible());
-			runtime_assert(right_solution.parent.IsFeasible());
+			//runtime_assert(left_solution.parent.IsFeasible());
+			//runtime_assert(right_solution.parent.IsFeasible
+			if (!left_solution.parent.IsFeasible() || !right_solution.parent.IsFeasible()) {
+				throw std::runtime_error("Could not reconstruct the tree in the terminal solver.");
+			}
 			tree_node.Set(node, left_solution.parent, right_solution.parent);
 			return Tree<OT>::CreateD2TreeFromTreeNodes(tree_node, left_solution, right_solution);
 		} else {
@@ -454,5 +457,6 @@ namespace STreeD {
 	template class TerminalSolver<GroupFairness>;
 	template class TerminalSolver<EqOpp>;
 	template class TerminalSolver<PrescriptivePolicy>;
+	template class TerminalSolver<SurvivalAnalysis>;
 
 }

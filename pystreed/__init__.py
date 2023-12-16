@@ -1,6 +1,7 @@
 from pystreed.base import *
 from pystreed.classification import STreeDClassifier
 from pystreed.cost_sensitive_classification import STreeDCostSensitiveClassifier
+from pystreed.survival_analysis import STreeDSurvivalAnalysis
 from pystreed.prescriptive_policy_generation import STreeDPrescriptivePolicyGenerator
 from pystreed.group_fair import STreeDGroupFairnessClassifier
 from pystreed.data import *

@@ -1,13 +1,10 @@
-[![CMake build](https://github.com/algtudelft/pystreed/actions/workflows/cmake.yml/badge.svg)](https://github.com/algtudelft/pystreed/actions/workflows/cmake.yml)
-[![Pip install](https://github.com/algtudelft/pystreed/actions/workflows/pip.yml/badge.svg)](https://github.com/algtudelft/pystreed/actions/workflows/pip.yml)
-
 # STreeD: Separable Trees with Dynamic programming
 By: Jacobus G. M. van der Linden
 
-STreeD is a framework for optimal binary decision trees with _separable_ optimization tasks. A separable optimization task is a task that can be optimized separately for the left and right subtree. The current STreeD Framework implements a broad set of such optimization tasks, from group fairness constraints to prescriptive policy generation. For an explanation of each application, see below.
-For details on what tasks are separable and how the algorithm works, see our paper.
+STreeD is a framework for optimal binary decision trees with _separable_ optimization tasks. A separable optimization task is a task that can be optimized separately for the left and right subtree. The current STreeD Framework implements a broad set of such optimization tasks, from group fairness constraints to survival analysis. For an explanation of each application, see below.
+For details on what tasks are separable and how the algoritm works, see our paper.
 
-* Van der Linden, Jacobus G. M., Mathijs M. de Weerdt, and Emir Demirović. "Necessary and Sufficient Conditions for Optimal Decision Trees using Dynamic Programming." _Advances in Neural Information Processing Systems_ (accepted, not published). 2023. [pdf](https://arxiv.org/pdf/2305.19706) 
+* Van der Linden, Jacobus G. M., Mathijs M. de Weerdt, and Emir Demirović. "Necessary and Sufficient Conditions for Optimal Decision Trees using Dynamic Programming." _Advances in Neural Information Processing Systems_ (Accepted, not published). 2023. [pdf](https://arxiv.org/pdf/2305.19706) 
 
 ## Python usage
 
@@ -15,7 +12,7 @@ For details on what tasks are separable and how the algorithm works, see our pap
 The `pystreed` python package can be installed from source as follows:
 
 ```sh
-git clone https://github.com/AlgTUDelft/pystreed
+git clone https://github.com/AlgTUDelft/pystreed.git
 cd pystreed
 pip install . 
 ```
@@ -51,7 +48,7 @@ See the [examples](examples) folder for a number of example usages.
 Note that some of the examples require the installation of extra python packages:
 
 ```sh
-pip install matplotlib seaborn graphviz pydl8.5 pymurtree
+pip install matplotlib seaborn graphviz scikit-survival pydl8.5 pymurtree
 ```
 
 Note that `pymurtree` is currently not available for pip install yet. It can be installed from [source](https://github.com/MurTree/pymurtree/) (install the `develop` branch)
@@ -142,13 +139,24 @@ Only the data which will be used by the teacher method needs to be specified, th
 
 See [examples/prescriptive_policy_example.py](examples/prescriptive_policy_example.py) for an example.
 
+### Survival analysis
+`STreeDSurvivalAnalysis` implements an optimal survival tree method, by optimizing the proportional hazard function of LeBlanc and Crowly, "Relative Risk for Censored Survival Data," _Biometrics_ 48.2 (1992): 411-425. Each leaf node predicts a risk factor $\theta$ which is used to shift the base hazard model $\hat{\Lambda}(t)$.  The Kaplan-Meier estimator is used as a stepwise survival function $\hat{S}(t) = e^{-\theta \hat{\Lambda}(t)}$.
+
+Instead of a label, the input data expects a two-dimensional array with for each instance 1) a binary censoring indicator and 2) a time-of-event (death or censoring).
+
+See [examples/survival_analysis_example.py](examples/survival_analysis_example.py) for an example.
+
+If you use STreeD for _survival analysis_, please cite our paper:
+
+* Huisman, T., Jacobus G. M. van der Linden, and Emir Demirović. "Optimal Survival Trees: A Dynamic Programming Approach." _Proceedings of AAAI-24_ (Accepted, not published). 2024. 
+
 ## Parameters
 STreeD can be configured by the following parameters:
 * `max_depth` : The maximum depth of the tree. Note that a tree of depth zero has a single leaf node. A tree of depth one has one branching node and two leaf nodes.
 * `max_num_nodes` : The maximum number of _branching_ nodes in the tree.
 * `min_leaf_node_size` : The minimum number of samples required in each leaf node.
 * `time_limit` : The run time limit in seconds. If the time limit is exceeded a possibly non-optimal tree is returned.
-* `feature_ordering` : The order in which the features are considered for branching. Default is `"gini"` which sorts the features by gini-impurity decrease. The alternative is `"in-order"` which considers the feature in order of appearance.
+* `feature_ordering` : The order in which the features are considered for branching. Default is `"gini"` which sorts the features by gini-impurity decrease. The alternative (and default for survival analysis) is `"in-order"` which considers the feature in order of appearance.
 * `hyper_tune` : Use STreeD's special hyper-tune method.
 * `use_branch_caching` : Enables or disables the use of branch caching.
 * `use_dataset_caching` : Enables or disables the use of dataset caching.
@@ -160,7 +168,7 @@ STreeD can be configured by the following parameters:
 * `random_seed` : The random seed.
 
 ## Binarization
-STreeD provides optimal decision trees for a given binarization. To help with the binarization, the `pystreed` package provides automatic binarizatin of categorical and continuous features.
+STreeD provides optimal decision trees for a given binarization. To help with the binarization, the `pystreed` package provides automatic binarization of categorical and continuous features.
 
 Categorical features can be specified in the `fit` method by using the `categorical_columns` parameter. These features are binarized using one-hot encoding. The maximum number of categories per categorical feature is specified with the `n_categories` parameter. If the categorical feature exceeds this number, the `n_categories - 1` most common categories are encoded with one binary feature each, and all other categories are encoded with an 'other' category.
 

@@ -61,6 +61,10 @@ struct F1ScoreTestSetup : TestSetup {
 	std::vector<F1ScoreSol> correct_solutions;
 };
 
+struct SurvivalAnalysisSetup : TestSetup {
+	double correct_solution;
+};
+
 void RunAccuracyTest(const AccuracyTestSetup& test, const SolverSetup& solver_setup) {
 	ParameterHandler parameters = STreeD::ParameterHandler::DefineParameters();
 	parameters.SetIntegerParameter("max-depth", test.max_depth);
@@ -97,6 +101,7 @@ void RunAccuracyTest(const AccuracyTestSetup& test, const SolverSetup& solver_se
 	
 
 }
+
 
 void RunF1ScoreTest(const F1ScoreTestSetup& test, const SolverSetup& solver_setup) {
 	ParameterHandler parameters = STreeD::ParameterHandler::DefineParameters();
@@ -154,6 +159,45 @@ void RunF1ScoreTest(const F1ScoreTestSetup& test, const SolverSetup& solver_setu
 
 }
 
+void RunSurvivalAnalysisTest(const SurvivalAnalysisSetup& test, const SolverSetup& solver_setup) {
+	ParameterHandler parameters = STreeD::ParameterHandler::DefineParameters();
+	parameters.SetIntegerParameter("max-depth", test.max_depth);
+	parameters.SetIntegerParameter("max-num-nodes", test.max_num_nodes);
+	parameters.SetStringParameter("file", test.file);
+	if (solver_setup.feature_ordering == "gini") return;
+	solver_setup.Apply(parameters);
+	auto rng = std::default_random_engine(0);
+	double correct_solution = test.correct_solution;
+
+	std::shared_ptr<SolverResult> result;
+	AData data;
+	ADataView train_data, test_data;
+
+	FileReader::ReadData<SurvivalAnalysis>(parameters, data, train_data, test_data, &rng);
+	try {
+		auto solver = new STreeD::Solver<SurvivalAnalysis>(parameters, &rng);
+
+		result = solver->Solve(train_data);
+		delete solver;
+	} catch (std::exception&) {
+		std::ostringstream os;
+		os << "An exception occured for " << test.ToString() << std::endl
+			<< solver_setup.ToString();
+		test_failed(os.str().c_str());
+	}
+	auto score = std::static_pointer_cast<InternalTrainScore<SurvivalAnalysis>>(result->scores[0]);
+	double error = score->score;
+
+	if (std::abs(error - correct_solution) >= 1e-2) {
+		std::ostringstream os;
+		os << "Incorrect survival analysis solution for " << test.ToString() << std::endl
+			<< solver_setup.ToString() << std::endl
+			<< "Found " << error << ", instead of correct solution " << correct_solution << std::endl;
+		test_assert_m(std::abs(error - correct_solution) < 1e-2, os.str().c_str());
+	}
+}
+
+
 void EnumerateSolverSetupOptions(std::vector<SolverSetup>& solver_setups) {
 	std::vector<bool> branch_cache_options{ false, true };
 	std::vector<bool> dataset_cache_options{ false, true };
@@ -200,7 +244,6 @@ int main(int argc, char **argv) {
 	std::vector<SolverSetup> solver_setups;
 	EnumerateSolverSetupOptions(solver_setups);
 	
-
 	std::vector<AccuracyTestSetup> accuracy_tests{
 		{ "data/fairness/adult-binarized.csv", 2, 3, 8314 },
 		{ "data/fairness/adult-binarized.csv", 3, 7, 7514 },
@@ -210,12 +253,21 @@ int main(int argc, char **argv) {
 	std::vector<F1ScoreTestSetup> f1_score_tests;
 	GetF1ScoreTests(f1_score_tests);
 
+	std::vector<SurvivalAnalysisSetup> survival_analysis_tests{
+		{"data/survival-analysis/colon_binary.txt", 2, 3, 0.70269 },
+		{"data/survival-analysis/colon_binary.txt", 3, 5, 0.692248 },
+		{"data/survival-analysis/colon_binary.txt", 4, 15, 0.652018 }
+	};
+
 	for (auto& ss : solver_setups) {
 		for (auto& ats : accuracy_tests) {
 			RunAccuracyTest(ats, ss);
 		}
 		for (auto& f1ts : f1_score_tests) {
 			RunF1ScoreTest(f1ts, ss);
+		}
+		for (auto& sa_ts : survival_analysis_tests) {
+			RunSurvivalAnalysisTest(sa_ts, ss);
 		}
 	}
 

@@ -2,7 +2,7 @@ from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.base import BaseEstimator
 from sklearn.utils.validation import check_array, check_is_fitted
 from .cstreed import initialize_streed_solver, ParameterHandler
-from pystreed.binarizer import Binarizer
+from pystreed.binarizer import Binarizer, _column_threshold
 from typing import Optional
 import numpy as np
 import warnings
@@ -14,10 +14,9 @@ import sys
 class BaseSTreeDSolver(BaseEstimator):
 
     _parameter_constraints: dict = {
-        "optimization_task": [StrOptions({"accuracy", "cost-complex-accuracy",
-                                          "cost-sensitive", "f1-score",
-                                          "group-fairness", "equality-of-opportunity",
-                                          "prescriptive-policy",})],
+        "optimization_task": [StrOptions({"accuracy", "cost-complex-accuracy",  "cost-sensitive", "f1-score",
+                                          "group-fairness", "equality-of-opportunity", "prescriptive-policy",
+                                            "survival-analysis"})],
         "max_depth": [Interval(numbers.Integral, 0, 20, closed="both")],
         "max_num_nodes": [Interval(numbers.Integral, 0, 1048575, closed="both"), None],
         "min_leaf_node_size": [Interval(numbers.Integral, 1, None, closed="left")],
@@ -347,7 +346,15 @@ class BaseSTreeDSolver(BaseEstimator):
         return str(label) if not isinstance(label, int) or label_names is None else label_names[label]
     
     def _get_predicate_str(self, feature, feature_names=None):
-        return f"Feature {feature}" if feature_names is None else feature_names[feature]
+        if feature_names is None:
+            return f"Feature {feature}"
+        feature_name = feature_names[feature]
+        if " <= " in feature_name:
+            feature_name, threshold = feature_name.split(" <= ")
+            if len(threshold) >= 3:
+                threshold = _column_threshold(float(threshold))
+            return f"{feature_name} <= {threshold}"
+        return feature_name
 
     def _recursive_print_tree(self, out, node, feature_names, label_names, ind=''):
         if node.is_leaf_node():

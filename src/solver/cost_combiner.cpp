@@ -478,7 +478,9 @@ namespace STreeD {
 	template class CostCalculator<CostSensitive>;
 	template class CostCalculator<F1Score>;
 	template class CostCalculator<GroupFairness>;
+
 	template class CostCalculator<EqOpp>;
 	template class CostCalculator<PrescriptivePolicy>;
+	template class CostCalculator<SurvivalAnalysis>;
 	
 }

@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
 	if (task == "accuracy") {
 		solver = new STreeD::Solver<STreeD::Accuracy>(parameters, &rng);
 		STreeD::FileReader::ReadData<STreeD::Accuracy>(parameters, data, train_data, test_data, &rng);
-		} else if (task == "cost-complex-accuracy") {
+	} else if (task == "cost-complex-accuracy") {
 		solver =  new STreeD::Solver<STreeD::CostComplexAccuracy>(parameters, &rng);
 		STreeD::FileReader::ReadData<STreeD::CostComplexAccuracy>(parameters, data, train_data, test_data, &rng);
 	} else if (task == "cost-sensitive") {
@@ -63,6 +63,9 @@ int main(int argc, char* argv[]) {
 	} else if (task == "prescriptive-policy") {
 		solver =  new STreeD::Solver<STreeD::PrescriptivePolicy>(parameters, &rng);
 		STreeD::FileReader::ReadData<STreeD::PrescriptivePolicy>(parameters, data, train_data, test_data, &rng);
+	} else if (task == "survival-analysis") {
+		solver = new STreeD::Solver<STreeD::SurvivalAnalysis>(parameters, &rng);
+		STreeD::FileReader::ReadData<STreeD::SurvivalAnalysis>(parameters, data, train_data, test_data, &rng);
 	} else {
 		std::cout << "Encountered unknown optimization task: " << task << std::endl;
 		exit(1);

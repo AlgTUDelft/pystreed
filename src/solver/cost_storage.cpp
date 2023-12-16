@@ -74,5 +74,6 @@ namespace STreeD {
 	template class CostStorage<GroupFairness>;
 	template class CostStorage<EqOpp>;
 	template class CostStorage<PrescriptivePolicy>;
+	template class CostStorage<SurvivalAnalysis>;
 
 }

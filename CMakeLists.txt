@@ -39,7 +39,6 @@ set(STREED_HEADER_FILES
 	${PROJECT_INCLUDE_DIR}/model/node.h
 	${PROJECT_INCLUDE_DIR}/model/container.h
 	
-
 	${PROJECT_INCLUDE_DIR}/solver/result.h
 	${PROJECT_INCLUDE_DIR}/solver/feature_selector.h
 	${PROJECT_INCLUDE_DIR}/solver/difference_computer.h
@@ -65,10 +64,10 @@ set(STREED_HEADER_FILES
 	${PROJECT_INCLUDE_DIR}/tasks/group_fairness.h
 	${PROJECT_INCLUDE_DIR}/tasks/eq_opp.h
 	${PROJECT_INCLUDE_DIR}/tasks/prescriptive_policy.h
+	${PROJECT_INCLUDE_DIR}/tasks/survival_analysis.h
 
 	${PROJECT_INCLUDE_DIR}/tasks/accuracy/accuracy.h
 	${PROJECT_INCLUDE_DIR}/tasks/accuracy/cost_complex_accuracy.h
-
 )
 
 set(STREED_SRC_FILES
@@ -102,10 +101,10 @@ set(STREED_SRC_FILES
 	${PROJECT_SOURCE_DIR}/tasks/group_fairness.cpp
 	${PROJECT_SOURCE_DIR}/tasks/eq_opp.cpp
 	${PROJECT_SOURCE_DIR}/tasks/prescriptive_policy.cpp
+	${PROJECT_SOURCE_DIR}/tasks/survival_analysis.cpp
 
 	${PROJECT_SOURCE_DIR}/tasks/accuracy/accuracy.cpp
 	${PROJECT_SOURCE_DIR}/tasks/accuracy/cost_complex_accuracy.cpp
-
 
 	${STREED_HEADER_FILES}
 )

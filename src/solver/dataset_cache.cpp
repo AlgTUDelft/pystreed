@@ -232,5 +232,6 @@ namespace STreeD {
 	template class DatasetCache<GroupFairness>;
 	template class DatasetCache<EqOpp>;
 	template class DatasetCache<PrescriptivePolicy>;
+	template class DatasetCache<SurvivalAnalysis>;
 
 }

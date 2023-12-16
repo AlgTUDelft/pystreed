@@ -84,10 +84,6 @@ class STreeDClassifier(BaseSTreeDSolver):
         if optimization_task == "f1-score" and upper_bound != 2**31-1:
             warnings.warn(f"upper_bound parameter is ignored for f1-score", stacklevel=2)
         
-    def _initialize_param_handler(self):
-        super()._initialize_param_handler()
-        return self._params
-
     def fit(self, X, y, extra_data=None):
         self.n_classes_ = len(np.unique(y))
         return super().fit(X, y, extra_data)
