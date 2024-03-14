@@ -219,7 +219,7 @@ namespace STreeD {
 
 			//Check lower-bound vs leaf node solution and return if same
 			auto empty_UB = InitializeSol<OT>();
-			auto leaf_solutions = SolveLeafNode(data, context, empty_UB);
+			leaf_solutions = SolveLeafNode(data, context, empty_UB);
 			if (SolutionsEqual<OT>(lower_bound, leaf_solutions)) return leaf_solutions; 
 		}
 
@@ -317,7 +317,10 @@ namespace STreeD {
 				// Compute the left and right and combined LBs
 				ComputeLeftRightLowerBound(feature, context, branching_costs, lb, left_lower_bound, right_lower_bound,
 					*left_data_ptr, left_branch, left_depth, left_subtree_size, *right_data_ptr, right_branch, right_depth, right_subtree_size);
-				if (solver_parameters.use_upper_bounding && LeftStrictDominatesRight<OT>(UB, lb)) continue;
+				if (solver_parameters.use_upper_bounding && LeftStrictDominatesRight<OT>(UB, lb)) {
+					AddSols<OT>(infeasible_lb, lb);
+					continue;
+				}
 				if (SolutionsEqual<OT>(lb, solutions)) continue;
 				
 
