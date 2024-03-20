@@ -4,13 +4,14 @@ requires = [
     "pybind11>=2.10.0"
 ]
 build-backend = "setuptools.build_meta"
-target-version = "py38"
 
 [project]
 name = "pystreed"
-version = "1.2.0"
+version = "1.2.2"
+requires-python = ">=3.8"						 
 description = "Python Implementation of STreeD: Dynamic Programming Approach for Optimal Decision Trees with Separable objectives and Constraints"
 license=  {file = "LICENSE"}
+readme = "README.md"						
 authors = [
     {name = "Jacobus G. M. van der Linden", email="J.G.M.vanderLinden@tudelft.nl"},
     {name = "Emir Demirović", email="E.Demirovic@tudelft.nl"},
@@ -41,8 +42,8 @@ pythonpath = [
   "."
 ]
 
-[tool.setuptools.packages]
-find = {}  # Scanning implicit namespaces is active by default
+[tool.setuptools.packages.find]
+exclude = ["data*", "examples*", "test*"]
 
 [project.urls]
 Repository = "https://github.com/AlgTUDelft/pystreed"

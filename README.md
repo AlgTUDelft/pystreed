@@ -2,7 +2,7 @@
 [![Pip install](https://github.com/algtudelft/pystreed/actions/workflows/pip.yml/badge.svg)](https://github.com/algtudelft/pystreed/actions/workflows/pip.yml)
 
 # STreeD: Separable Trees with Dynamic programming
-By: Jacobus G. M. van der Linden
+By: Jacobus G. M. van der Linden [(e-mail)](mailto:J.G.M.vanderLinden@tudelft.nl)
 
 STreeD is a framework for optimal binary decision trees with _separable_ optimization tasks. A separable optimization task is a task that can be optimized separately for the left and right subtree. The current STreeD Framework implements a broad set of such optimization tasks, from group fairness constraints to survival analysis. For an explanation of each application, see below.
 For details on what tasks are separable and how the algoritm works, see our paper.
@@ -11,8 +11,15 @@ For details on what tasks are separable and how the algoritm works, see our pape
 
 ## Python usage
 
+### Install from PyPi
+The `pystreed` python package can be installed from PyPi using `pip`:
+
+```sh
+pip install pystreed
+```
+
 ### Install from source using pip
-The `pystreed` python package can be installed from source as follows:
+The `pystreed` python package can also be installed from source as follows:
 
 ```sh
 git clone https://github.com/AlgTUDelft/pystreed.git
