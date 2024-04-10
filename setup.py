@@ -6,7 +6,7 @@ from glob import glob
 # Define package metadata
 package_name = 'pystreed'
 extension_name = 'cstreed'
-__version__ = "1.2.2"
+__version__ = "1.2.3"
 
 ext_modules = [
     Pybind11Extension(package_name + '.' + extension_name,
@@ -24,6 +24,7 @@ setup(
     ext_modules=ext_modules,
     dev_requires=['pytest'],
     install_requires=['pandas', 'numpy'],
-    long_description=open('README.md').read(),
+    # Add read me as long description and replace relative example links with absolute links
+    long_description=open('README.md').read().replace("](examples", "](https://github.com/AlgTUDelft/pystreed/blob/main/examples"),
     long_description_content_type='text/markdown'
 )

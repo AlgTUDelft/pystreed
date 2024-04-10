@@ -1014,6 +1014,7 @@ namespace STreeD {
 	template class Solver<CostComplexAccuracy>;
 
 	template class Solver<CostSensitive>;
+	template class Solver<InstanceCostSensitive>;
 	template class Solver<F1Score>;
 	template class Solver<GroupFairness>;
 	template class Solver<EqOpp>;

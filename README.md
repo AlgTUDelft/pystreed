@@ -116,6 +116,13 @@ Note that currently `STreeDCostSensitiveClassifier` does not support automatic b
 
 See [examples/cost_sensitive_example.py](examples/cost_sensitive_example.py) for an example.
 
+### Instance-Cost-Sensitive Classification
+`STreeDInstanceCostSensitiveClassifier` implements an instance-cost-sensitive classifier. Each instance can  have a different misclassification cost per label.
+
+The costs can be specified with a `CostVector` object. For each instance, initialize a `CostVector` object with a list of the costs for each possible label. 
+
+See [examples/instance_cost_sensitive_example.py](examples/instance_cost_sensitive_example.py) for an example.
+
 ### Classification under a Group Fairness constraint
 `STreeDGroupFairnessClassifier` implements a classifier that satisfies a group fairness constraint.
 The maximum amount of discrimination on the training data can be specified by the `discrimination-limit` parameter, e.g., 0.01 for maximum of 1% discrimination.

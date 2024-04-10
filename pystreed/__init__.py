@@ -4,4 +4,5 @@ from pystreed.cost_sensitive_classification import STreeDCostSensitiveClassifier
 from pystreed.survival_analysis import STreeDSurvivalAnalysis
 from pystreed.prescriptive_policy_generation import STreeDPrescriptivePolicyGenerator
 from pystreed.group_fair import STreeDGroupFairnessClassifier
+from pystreed.instance_cost_sensitive_classification import STreeDInstanceCostSensitiveClassifier
 from pystreed.data import *

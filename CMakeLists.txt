@@ -60,6 +60,7 @@ set(STREED_HEADER_FILES
 	${PROJECT_INCLUDE_DIR}/tasks/tasks.h
 	${PROJECT_INCLUDE_DIR}/tasks/optimization_task.h
 	${PROJECT_INCLUDE_DIR}/tasks/cost_sensitive.h
+	${PROJECT_INCLUDE_DIR}/tasks/instance_cost_sensitive.h
 	${PROJECT_INCLUDE_DIR}/tasks/f1score.h
 	${PROJECT_INCLUDE_DIR}/tasks/group_fairness.h
 	${PROJECT_INCLUDE_DIR}/tasks/eq_opp.h
@@ -97,6 +98,7 @@ set(STREED_SRC_FILES
 
 	${PROJECT_SOURCE_DIR}/tasks/optimization_task.cpp
 	${PROJECT_SOURCE_DIR}/tasks/cost_sensitive.cpp
+	${PROJECT_SOURCE_DIR}/tasks/instance_cost_sensitive.cpp
 	${PROJECT_SOURCE_DIR}/tasks/f1score.cpp
 	${PROJECT_SOURCE_DIR}/tasks/group_fairness.cpp
 	${PROJECT_SOURCE_DIR}/tasks/eq_opp.cpp

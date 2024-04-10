@@ -476,6 +476,7 @@ namespace STreeD {
 	template class CostCalculator<CostComplexAccuracy>;
 
 	template class CostCalculator<CostSensitive>;
+	template class CostCalculator<InstanceCostSensitive>;
 	template class CostCalculator<F1Score>;
 	template class CostCalculator<GroupFairness>;
 

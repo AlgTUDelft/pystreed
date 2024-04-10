@@ -21,7 +21,7 @@ namespace STreeD {
 			"accuracy",
 			"Main Parameters",
 			{"accuracy", "cost-complex-accuracy", "f1-score", "group-fairness", "survival-analysis",
-			"equality-of-opportunity", "cost-sensitive", "prescriptive-policy" }
+			"equality-of-opportunity", "cost-sensitive", "prescriptive-policy", "instance-cost-sensitive"}
 		);
 
 		parameters.DefineBooleanParameter

@@ -1,1 +1,1 @@
-from .cstreed import SAData, PPGData, FeatureCostSpecifier, CostSpecifier
+from .cstreed import SAData, PPGData, FeatureCostSpecifier, CostSpecifier, CostVector

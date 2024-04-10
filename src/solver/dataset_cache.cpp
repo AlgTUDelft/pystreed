@@ -228,6 +228,7 @@ namespace STreeD {
 	template class DatasetCache<CostComplexAccuracy>;
 
 	template class DatasetCache<CostSensitive>;
+	template class DatasetCache<InstanceCostSensitive>;
 	template class DatasetCache<F1Score>;
 	template class DatasetCache<GroupFairness>;
 	template class DatasetCache<EqOpp>;

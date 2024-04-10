@@ -72,6 +72,7 @@ namespace STreeD {
 	template class Cache<CostComplexAccuracy>;
 
 	template class Cache<CostSensitive>;
+	template class Cache<InstanceCostSensitive>;
 	template class Cache<F1Score>;
 	template class Cache<GroupFairness>;
 	template class Cache<EqOpp>;

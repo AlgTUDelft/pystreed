@@ -15,6 +15,7 @@ enum task_type {
     accuracy,
     cost_complex_accuracy,
     cost_sensitive,
+    instance_cost_sensitive,
     f1score,
     group_fairness,
     equality_of_opportunity,
@@ -26,6 +27,7 @@ task_type get_task_type_code(std::string& task) {
     if (task == "accuracy") return accuracy;
     else if (task == "cost-complex-accuracy") return cost_complex_accuracy;
     else if (task == "cost-sensitive") return cost_sensitive;
+    else if (task == "instance-cost-sensitive") return instance_cost_sensitive;
     else if (task == "f1-score") return f1score;
     else if (task == "group-fairness") return group_fairness;
     else if (task == "equality-of-opportunity") return equality_of_opportunity;
@@ -259,6 +261,7 @@ PYBIND11_MODULE(cstreed, m) {
     DefineSolver<PrescriptivePolicy>(m, "PrescriptivePolicy");
     DefineSolver<GroupFairness>(m, "GroupFairness");
     DefineSolver<EqOpp>(m, "EqOpp");
+    DefineSolver<InstanceCostSensitive>(m, "InstanceCostSensitive");
     py::class_<Solver<CostSensitive>> cost_sensitive_solver = DefineSolver<CostSensitive>(m, "CostSensitive");
     cost_sensitive_solver.def("specify_costs", [](Solver<CostSensitive>& solver, const CostSpecifier& cost_specifier) {
         solver.GetTask()->UpdateCostSpecifier(cost_specifier);
@@ -284,6 +287,7 @@ PYBIND11_MODULE(cstreed, m) {
             case accuracy: solver = new Solver<Accuracy>(parameters, &rng); break;
             case cost_complex_accuracy: solver = new Solver<CostComplexAccuracy>(parameters, &rng); break;
             case cost_sensitive: solver = new Solver<CostSensitive>(parameters, &rng); break;
+            case instance_cost_sensitive: solver = new Solver<InstanceCostSensitive>(parameters, &rng); break;
             case f1score: solver = new Solver<F1Score>(parameters, &rng); break;
             case group_fairness: solver = new Solver<GroupFairness>(parameters, &rng); break;
             case equality_of_opportunity: solver = new Solver<EqOpp>(parameters, &rng); break;
@@ -312,7 +316,12 @@ PYBIND11_MODULE(cstreed, m) {
         .def_readonly("predicted_outcome", &PPGData::yhat)
         .def_readonly("optimal_treatment", &PPGData::k_opt)
         .def_readonly("counterfactual_outcome", &PPGData::cf_y);
-        
+       
+    py::class_<InstanceCostSensitiveData>(m, "CostVector")
+        .def(py::init<std::vector<double>&>())
+        .def(py::init<>())
+        .def_readonly("costs", &InstanceCostSensitiveData::costs);
+
     /*************************************
            Label
      ************************************/

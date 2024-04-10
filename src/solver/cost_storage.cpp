@@ -70,6 +70,7 @@ namespace STreeD {
 	template class CostStorage<CostComplexAccuracy>;
 
 	template class CostStorage<CostSensitive>;
+	template class CostStorage<InstanceCostSensitive>;
 	template class CostStorage<F1Score>;
 	template class CostStorage<GroupFairness>;
 	template class CostStorage<EqOpp>;
