@@ -7,7 +7,9 @@ By: Jacobus G. M. van der Linden [(e-mail)](mailto:J.G.M.vanderLinden@tudelft.nl
 STreeD is a framework for optimal binary decision trees with _separable_ optimization tasks. A separable optimization task is a task that can be optimized separately for the left and right subtree. The current STreeD Framework implements a broad set of such optimization tasks, from group fairness constraints to survival analysis. For an explanation of each application, see below.
 For details on what tasks are separable and how the algoritm works, see our paper.
 
-* Van der Linden, Jacobus G. M., Mathijs M. de Weerdt, and Emir Demirović. "Necessary and Sufficient Conditions for Optimal Decision Trees using Dynamic Programming." _Advances in Neural Information Processing Systems_ (Accepted, not published). 2023. [pdf](https://arxiv.org/pdf/2305.19706) 
+If you use STreeD, please cite our paper:
+
+* Van der Linden, Jacobus G. M., Mathijs M. de Weerdt, and Emir Demirović. "Necessary and Sufficient Conditions for Optimal Decision Trees using Dynamic Programming." _Advances in Neural Information Processing Systems_. 2023. [pdf](https://proceedings.neurips.cc/paper_files/paper/2023/hash/1d5fce9627e15c84db572a66e029b1fc-Abstract-Conference.html) 
 
 ## Python usage
 
