@@ -90,19 +90,19 @@ namespace STreeD {
 
 	// Convenience function that returns the label of an instance
 	template<class LT>
-	LT GetInstanceLabel(const AInstance* instance) {
+	inline LT GetInstanceLabel(const AInstance* instance) {
 		return static_cast<const LInstance<LT>*>(instance)->GetLabel();
 	}
 
 	// Convenience function that sets the label of an instance
 	template<class LT>
-	void SetInstanceLabel(AInstance* instance, LT label) {
+	inline void SetInstanceLabel(AInstance* instance, LT label) {
 		static_cast<LInstance<LT>*>(instance)->SetLabel(label);
 	}
 
 	// Convenience function that returns the extra data of an instance
 	template<class LT, class ET>
-	const ET& GetInstanceExtraData(const AInstance* instance) {
+	inline const ET& GetInstanceExtraData(const AInstance* instance) {
 		return static_cast<const Instance<LT, ET>*>(instance)->GetExtraData();
 	}
 

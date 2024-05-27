@@ -48,6 +48,18 @@ int main(int argc, char* argv[]) {
 	} else if (task == "cost-complex-accuracy") {
 		solver =  new STreeD::Solver<STreeD::CostComplexAccuracy>(parameters, &rng);
 		STreeD::FileReader::ReadData<STreeD::CostComplexAccuracy>(parameters, data, train_data, test_data, &rng);
+	} else if (task == "regression") {
+		solver =  new STreeD::Solver<STreeD::Regression>(parameters, &rng);
+		STreeD::FileReader::ReadData<STreeD::Regression>(parameters, data, train_data, test_data, &rng);
+	} else if (task == "cost-complex-regression") {
+		solver =  new STreeD::Solver<STreeD::CostComplexRegression>(parameters, &rng);
+		STreeD::FileReader::ReadData<STreeD::CostComplexRegression>(parameters, data, train_data, test_data, &rng);
+	} else if (task == "piecewise-linear-regression") {
+		solver = new STreeD::Solver<STreeD::PieceWiseLinearRegression>(parameters, &rng);
+		STreeD::FileReader::ReadData<STreeD::PieceWiseLinearRegression>(parameters, data, train_data, test_data, &rng);
+	} else if (task == "simple-linear-regression") {
+		solver = new STreeD::Solver<STreeD::SimpleLinearRegression>(parameters, &rng);
+		STreeD::FileReader::ReadData<STreeD::SimpleLinearRegression>(parameters, data, train_data, test_data, &rng);
 	} else if (task == "cost-sensitive") {
 		solver =  new STreeD::Solver<STreeD::CostSensitive>(parameters, &rng);
 		STreeD::FileReader::ReadData<STreeD::CostSensitive>(parameters, data, train_data, test_data, &rng);
@@ -91,7 +103,11 @@ int main(int argc, char* argv[]) {
 
 
 	if (verbose) {
-		if (result->IsFeasible()) {
+		if (result->NumSolutions() > 0) {
+			if (!result->IsProvenOptimal()) {
+				std::cout << std::endl << "Warning: No proof of optimality. Results are best solution found before the time-out." << std::endl << std::endl;
+			}
+
 			std::cout << "Solutions: " << result->NumSolutions() << " \tD\tN\t\tTrain \t\tTest\t\tAvg. Path length" << std::endl;
 			for (int i = 0; i < result->NumSolutions(); i++) {
 				auto train_score = result->scores[i];

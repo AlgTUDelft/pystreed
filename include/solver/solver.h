@@ -33,6 +33,7 @@ namespace STreeD {
 		bool verbose{ true };
 		bool use_terminal_solver{ true };
 		bool use_lower_bounding{ true };
+		bool use_task_lower_bounding{ true };
 		bool subtract_ub{ true };
 		bool use_upper_bounding{ true };
 		bool similarity_lb{ true };
@@ -192,6 +193,11 @@ namespace STreeD {
 		void UpdateUB(const Context& context, SolContainer& UB, Node<OT> sol) const;
 
 		/*
+		* Check the minimum leaf node size
+		*/
+		bool SatisfiesMinimumLeafNodeSize(const ADataView& data, int multiplier = 1) const;
+
+		/*
 		* Construct the tree for a given solution from the cache
 		*/
 		std::shared_ptr<Tree<OT>> ConstructOptimalTree(const Node<OT>& sol, ADataView& data, const Context& context, int max_depth, int num_nodes);
@@ -228,6 +234,11 @@ namespace STreeD {
 		* Preprocess the training data
 		*/
 		void PreprocessTestData(const ADataView& org_test_data, ADataView& test_data);
+
+		/*
+		* Postprocess the tree
+		*/
+		void PostProcessTree(std::shared_ptr<Tree<OT>> tree);
 
 		/*
 		* Reduce the number of nodes and depth limit based on a constant branching costs

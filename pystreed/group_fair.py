@@ -105,7 +105,7 @@ class STreeDGroupFairnessClassifier(BaseSTreeDSolver):
         else:
             raise ValueError(f"The sensitive feature column should be either an index or a string, but is {self.sensitive_feature} of type {type(self.sensitive_feature)}.")
 
-    def fit(self, X, y):
+    def fit(self, X, y, categorical=None):
         """
         Fits a STreeD model to the given training data.
 
@@ -116,6 +116,9 @@ class STreeDGroupFairnessClassifier(BaseSTreeDSolver):
             y : array-like, shape = (n_samples)
             Target vector
 
+            categorical : array-like, 
+            List of column names that are categorical
+
         Returns:
             BaseSTreeDSolver
 
@@ -124,7 +127,7 @@ class STreeDGroupFairnessClassifier(BaseSTreeDSolver):
         """
         self.n_classes_ = len(np.unique(y))
         X = self._move_sensitive_feature_first(X)
-        return super().fit(X, y)
+        return super().fit(X, y, categorical)
     
     def predict(self, X):
         """
@@ -157,8 +160,8 @@ class STreeDGroupFairnessClassifier(BaseSTreeDSolver):
         X = self._move_sensitive_feature_first(X)
         return super().score(X, y_true)
         
-    def _export_dot_leaf_node(self, fh, node, node_id, label_names):
+    def _export_dot_leaf_node(self, fh, node, node_id, label_names, train_data):
         if not hasattr(self, "_colors"):
             self._colors = _color_brew(self.n_classes_)
         color = self._colors[node.label]
-        return super()._export_dot_leaf_node(fh, node, node_id, label_names, color=color)
+        return super()._export_dot_leaf_node(fh, node, node_id, label_names, train_data, color=color)

@@ -84,12 +84,38 @@ class STreeDClassifier(BaseSTreeDSolver):
         if optimization_task == "f1-score" and upper_bound != 2**31-1:
             warnings.warn(f"upper_bound parameter is ignored for f1-score", stacklevel=2)
         
-    def fit(self, X, y, extra_data=None):
+    def _initialize_param_handler(self):
+        super()._initialize_param_handler()
+        return self._params
+
+    def fit(self, X, y, extra_data=None, categorical=None):
+        """
+        Fits a STreeD Classification model to the given training data.
+
+        Args:
+            x : array-like, shape = (n_samples, n_features)
+            Data matrix
+
+            y : array-like, shape = (n_samples)
+            Target vector
+
+            extra_data : array-like, shape = (n_samples, n_data_items)
+            An array (optional) that represents extra data per instance
+
+            categorical : array-like, 
+            List of column names that are categorical
+
+        Returns:
+            BaseSTreeDSolver
+
+        Raises:
+            ValueError: If x or y is None or if they have different number of rows.
+        """
         self.n_classes_ = len(np.unique(y))
-        return super().fit(X, y, extra_data)
+        return super().fit(X, y, extra_data, categorical)
         
-    def _export_dot_leaf_node(self, fh, node, node_id, label_names):
+    def _export_dot_leaf_node(self, fh, node, node_id, label_names, train_data):
         if not hasattr(self, "_colors"):
             self._colors = _color_brew(self.n_classes_)
         color = self._colors[node.label]
-        return super()._export_dot_leaf_node(fh, node, node_id, label_names, color=color)
+        return super()._export_dot_leaf_node(fh, node, node_id, label_names, train_data, color=color)

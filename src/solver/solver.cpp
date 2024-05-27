@@ -12,6 +12,7 @@ namespace STreeD {
 		use_terminal_solver(parameters.GetBooleanParameter("use-terminal-solver")),
 		use_upper_bounding(parameters.GetBooleanParameter("use-upper-bound")),
 		use_lower_bounding(parameters.GetBooleanParameter("use-lower-bound")),
+		use_task_lower_bounding(parameters.GetBooleanParameter("use-task-lower-bound")),
 		similarity_lb(parameters.GetBooleanParameter("use-similarity-lower-bound")),
 		minimum_leaf_node_size(int(parameters.GetIntegerParameter("min-leaf-node-size"))) { }
 
@@ -63,7 +64,12 @@ namespace STreeD {
 			global_UB = InitializeSol<OT>();
 			// If an upper bound is provided, and the objective is numeric, add it to the UB
 			if constexpr (std::is_same<Solver<OT>::SolType, double>::value || std::is_same<Solver<OT>::SolType, int>::value) {
-				AddSol<OT>(global_UB, Node<OT>(parameters.GetFloatParameter("upper-bound")));
+				double ub = parameters.GetFloatParameter("upper-bound");
+				// if INT32-MAX upper bound (default), but the solution value is a double, change the UB to DBL_MAX
+				if (std::abs(ub - INT32_MAX) < 1 && std::is_same<Solver<OT>::SolType, double>::value) {
+					ub = DBL_MAX;
+				}
+				AddSol<OT>(global_UB, Node<OT>(ub));
 			}
 			result = SolveLeafNode(train_data, root_context, global_UB);
 		}
@@ -89,7 +95,7 @@ namespace STreeD {
 				auto tree = ConstructOptimalTree(result, train_data, root_context, int(parameters.GetIntegerParameter("max-depth")), result.NumNodes());
 				stats.time_reconstructing += double(clock() - clock_start) / CLOCKS_PER_SEC;
 				auto score = InternalTrainScore<OT>::ComputeTrainPerformance(&data_splitter, task, tree.get(), train_data);
-				tree->FlipFlippedFeatures(flipped_features);
+				PostProcessTree(tree);
 				solver_result->AddSolution(tree, score);
 			}
 		} else {
@@ -98,7 +104,7 @@ namespace STreeD {
 				auto tree = ConstructOptimalTree(s, train_data, root_context, int(parameters.GetIntegerParameter("max-depth")), int(parameters.GetIntegerParameter("max-num-nodes")));
 				stats.time_reconstructing += double(clock() - clock_start) / CLOCKS_PER_SEC;
 				auto score = InternalTrainScore<OT>::ComputeTrainPerformance(&data_splitter, task, tree.get(), train_data);
-				tree->FlipFlippedFeatures(flipped_features);
+				PostProcessTree(tree);
 				solver_result->AddSolution(tree, score);
 			}
 		}
@@ -212,6 +218,13 @@ namespace STreeD {
 
 			//Check LB > UB and return infeasible if true
 			auto lower_bound = cache->RetrieveLowerBound(data, branch, max_depth, num_nodes);
+
+			if constexpr (OT::custom_lower_bound) {
+				if (solver_parameters.use_task_lower_bounding) {
+					auto lb = task->ComputeLowerBound(data, branch, max_depth, num_nodes);
+					AddSolsInv<OT>(lower_bound, lb);
+				}
+			}
 			
 			if (solver_parameters.use_upper_bounding && LeftStrictDominatesRight<OT>(UB, lower_bound)) {
 				return InitializeSol<OT>();
@@ -249,12 +262,18 @@ namespace STreeD {
 
 		auto solutions = SolveLeafNode(data, context, UB);
 		
-		if (data.Size() < 2 * solver_parameters.minimum_leaf_node_size)
+		if (!SatisfiesMinimumLeafNodeSize(data, 2))
 			return solutions;
 
 		auto branch_lb = solver_parameters.use_lower_bounding
 			? cache->RetrieveLowerBound(data, branch, max_depth, num_nodes)
 			: InitializeSol<OT>(true);
+		if constexpr (OT::custom_lower_bound) {
+			if (solver_parameters.use_task_lower_bounding) {
+				auto lb = task->ComputeLowerBound(data, branch, max_depth, num_nodes);
+				AddSolsInv<OT>(branch_lb, lb);
+			}
+		}
 
 		// Initialize the feature selector
 		std::unique_ptr<FeatureSelectorAbstract> feature_selector;
@@ -287,7 +306,7 @@ namespace STreeD {
 			ADataView left_data;
 			ADataView right_data;
 			data_splitter.Split(data, branch, feature, left_data, right_data);
-			if (left_data.Size() < solver_parameters.minimum_leaf_node_size || right_data.Size() < solver_parameters.minimum_leaf_node_size) continue;
+			if (!SatisfiesMinimumLeafNodeSize(left_data) || !SatisfiesMinimumLeafNodeSize(right_data)) continue;
 
 			// Generate the context descriptors for the left and richt sub-branch
 			Solver<OT>::Context left_context, right_context;
@@ -464,7 +483,7 @@ namespace STreeD {
 
 	template<class OT>
 	typename Solver<OT>::SolContainer Solver<OT>::SolveLeafNode(const ADataView& data, const Solver<OT>::Context& context, typename Solver<OT>::SolContainer& UB) const {
-		if (data.Size() < solver_parameters.minimum_leaf_node_size) return InitializeSol<OT>();
+		if (!SatisfiesMinimumLeafNodeSize(data)) return InitializeSol<OT>();
 		const Branch& branch = context.GetBranch();
 
 		// If the optimization task has a custom leaf node function defined, use it
@@ -501,6 +520,15 @@ namespace STreeD {
 			//if (right_lower_bound->Size() > 0) stats.num_cache_hit_nonzero_bound++;
 			left_lower_bound = cache->RetrieveLowerBound(left_data, left_branch, left_depth, left_nodes);
 			//if (left_lower_bound->Size() > 0) stats.num_cache_hit_nonzero_bound++;
+
+			if constexpr (OT::custom_lower_bound) {
+				if (solver_parameters.use_task_lower_bounding) {
+					auto right_lb = task->ComputeLowerBound(right_data, right_branch, right_depth, right_nodes);
+					AddSolsInv<OT>(right_lower_bound, lb);
+					auto left_lb = task->ComputeLowerBound(left_data, left_branch, left_depth, left_nodes);
+					AddSolsInv<OT>(left_lower_bound, lb);
+				}
+			}
 
 			if constexpr (OT::total_order) {
 				CombineSols(feature, left_lower_bound, right_lower_bound, branching_costs, lb);
@@ -698,6 +726,7 @@ namespace STreeD {
 	void Solver<OT>::ReduceNodeBudget(const ADataView& data, const Solver<OT>::Context& context, const typename Solver<OT>::SolContainer& UB, int& max_depth, int& num_nodes) const {
 		if constexpr (OT::total_order && OT::has_branching_costs && OT::constant_branching_costs &&
 			std::is_same<typename OT::SolType, double>::value || std::is_same<typename OT::SolType, int>::value) {
+			if (UB.solution >= 0.9 * DBL_MAX) return;
 			auto branching_costs = GetBranchingCosts(data, context, 0);
 			if (branching_costs <= 0) return;
 			int nodes = std::max(0, int((UB.solution + 1e-6) / branching_costs));
@@ -809,18 +838,13 @@ namespace STreeD {
 
 		// Special D1 reconstruct
 		bool d1 = max_depth == 1 || num_nodes == 1 || sol.NumNodes() == 1;
-		bool use_cache = cache->UseCache();
 
 		// Special D2 reconstruct
 		if constexpr (OT::use_terminal) {
 			if (!d1 && IsTerminalNode(max_depth, num_nodes)) {
 				try {
 					return terminal_solver1->ConstructOptimalTree(sol, data, context, max_depth, num_nodes);
-				} catch (std::exception& e) {
-					// Could happen because of numerical instability, but could also refer to an actual error. 
-					// Check if the solution value is the same when the terminal-solver is not used.
-					use_cache = false; 
-				}
+				} catch (...){} // Continue to the default way of reconstructing
 			}
 		}
 
@@ -837,7 +861,7 @@ namespace STreeD {
 		const Branch& branch = context.GetBranch();
 		ADataView left_data, right_data;
 		data_splitter.Split(data, branch, sol.feature, left_data, right_data);
-		runtime_assert(left_data.Size() >= solver_parameters.minimum_leaf_node_size && right_data.Size() >= solver_parameters.minimum_leaf_node_size);
+		runtime_assert(SatisfiesMinimumLeafNodeSize(left_data) && SatisfiesMinimumLeafNodeSize(right_data));
 		Solver<OT>::Context left_context, right_context;
 		task->GetLeftContext(data, context, sol.feature, left_context);
 		task->GetRightContext(data, context, sol.feature, right_context);
@@ -851,6 +875,7 @@ namespace STreeD {
 		int right_size = right_subtree_size;
 		Solver<OT>::SolContainer left_sols, right_sols;
 		
+		bool use_cache = cache->UseCache();
 		if (use_cache) {
 			const int max_size_subtree = std::min((1 << (max_depth - 1)) - 1, num_nodes - 1); //take the minimum between a full tree of max_depth or the number of nodes - 1
 			const int min_size_subtree = num_nodes - 1 - max_size_subtree;
@@ -884,11 +909,19 @@ namespace STreeD {
 		if (!use_cache || CheckEmptySol<OT>(left_sols)) {
 			left_depth = std::min(max_depth - 1, left_subtree_size);
 			left_sols = SolveSubTree(left_data, left_context, UBleft, left_depth, left_subtree_size);
+			if (CheckEmptySol<OT>(left_sols)) {
+				left_sols = SolveSubTree(left_data, left_context, UBleft, left_depth, left_subtree_size);
+			}
+			runtime_assert(!CheckEmptySol<OT>(left_sols));
 			if constexpr (!OT::total_order) left_sols->FilterOnNumberOfNodes(left_subtree_size);
 		}
 		if (!use_cache || CheckEmptySol<OT>(right_sols)) {
 			right_depth = std::min(max_depth - 1, right_subtree_size);
 			right_sols = SolveSubTree(right_data, right_context, UBright, right_depth, right_subtree_size);
+			if (CheckEmptySol<OT>(right_sols)) {
+				right_sols = SolveSubTree(right_data, right_context, UBright, right_depth, right_subtree_size);
+			}
+			runtime_assert(!CheckEmptySol<OT>(right_sols));
 			if constexpr (!OT::total_order) right_sols->FilterOnNumberOfNodes(right_subtree_size);
 		}
 
@@ -935,6 +968,23 @@ namespace STreeD {
 			return OT::best;
 		} else {
 			return task->GetBranchingCosts(data, context, feature);
+		}
+	}
+
+	template <class OT>
+	bool Solver<OT>::SatisfiesMinimumLeafNodeSize(const ADataView& data, int multiplier) const {
+		int mlsz = solver_parameters.minimum_leaf_node_size * multiplier;
+		if constexpr (OT::use_weights) {
+			int weight = 0;
+			for (int k = 0; k < data.NumLabels(); k++) {
+				for (auto& i : data.GetInstancesForLabel(k)) {
+					weight += int(i->GetWeight());
+					if (weight >= mlsz) return true;
+				}
+			}
+			return false;
+		} else {
+			return data.Size() >= mlsz;
 		}
 	}
 
@@ -990,6 +1040,14 @@ namespace STreeD {
 	}
 
 	template <class OT>
+	void Solver<OT>::PostProcessTree(std::shared_ptr<Tree<OT>> tree) {
+		tree->FlipFlippedFeatures(flipped_features);
+		if constexpr (OT::postprocess_tree) {
+			task->PostProcessTree(tree);
+		}
+	}
+
+	template <class OT>
 	std::shared_ptr<SolverResult> Solver<OT>::TestPerformance(const std::shared_ptr<SolverResult>& _result, const ADataView& _test_data) {
 		InitializeTest(_test_data, false);
 		const SolverTaskResult<OT>* result = static_cast<const SolverTaskResult<OT>*>(_result.get());
@@ -1012,6 +1070,11 @@ namespace STreeD {
 
 	template class Solver<Accuracy>;
 	template class Solver<CostComplexAccuracy>;
+
+	template class Solver<Regression>;
+	template class Solver<CostComplexRegression>;
+	template class Solver<PieceWiseLinearRegression>;
+	template class Solver<SimpleLinearRegression>;
 
 	template class Solver<CostSensitive>;
 	template class Solver<InstanceCostSensitive>;

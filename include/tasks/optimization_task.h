@@ -41,9 +41,11 @@ namespace STreeD {
 		static const bool custom_lower_bound = false;	// True iff this task has a custom lower bound
 		static const bool preprocess_data = false;		// True iff this task needs to preprocess the data after it is read from file
 		static const bool preprocess_train_test_data = false;// True iff this task needs to preprocess the training data before training
+		static const bool postprocess_tree = false;    // True iff this task needs to post-process
 		static const bool custom_similarity_lb = false; // True iff this optimization task defines a custom sim.lb. bound
 		static const bool terminal_compute_context = false; // True iff the optimization task requires the context to be computed in the terminal solver
 		static const bool custom_get_label = false;			// Set to true if you want to compute the label customly, rather than using max. cost
+		static const bool use_weights = false;				// Set to true if you want to counts to be based on the weights of isntances
 		static constexpr int worst_label = INT32_MAX;		// Defines the default label, when no label is given.
 		static constexpr int num_tune_phases = 1;			// Number of tuning phases in hypertuning
 		static constexpr int minimum_difference = 0;		// The minimum difference between two solutions

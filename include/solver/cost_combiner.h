@@ -47,11 +47,10 @@ namespace STreeD {
 		void InitializeIndexInfos(int num_features);
 
 		void GetIndexInfo(int f1, int f2, IndexInfo& index_info) const { index_info = index_infos[f1][f2]; }
+		void CalcLeafSol(SolType& sol, int label, SolLabelType& label_out) const;
 		void CalcSols(const Counts& counts, Sols<OT>& sols, int label, int f1, int f2) const;
 		void CalcSols(const Counts& counts, Sols<OT>& sols, int label, const IndexInfo& index) const;
 		void CalcSol00(SolType& sol, int label, int f1, int f2) const;
-		void CalcSol01(SolType& sol, int label, int f1, int f2) const;
-		void CalcSol10(SolType& sol, int label, int f1, int f2) const;
 		void CalcSol11(SolType& sol, int label, int f1, int f2) const;
 
 		const SolD2Type GetCosts00(int label, int f1, int f2) const;
@@ -59,17 +58,18 @@ namespace STreeD {
 		const SolD2Type GetCosts10(int label, int f1, int f2) const;
 		const SolD2Type GetCosts11(int label, int f1, int f2) const;
 
-		const SolLabelType GetLeafLabel(int label) const;
 		const SolLabelType GetLabel00(int label, int f1, int f2) const;
 		const SolLabelType GetLabel01(int label, int f1, int f2) const;
 		const SolLabelType GetLabel10(int label, int f1, int f2) const;
 		const SolLabelType GetLabel11(int label, int f1, int f2) const;
+		const SolLabelType GetLabel(int label, const SolD2Type& costs, int count) const;
 
 		const SolType GetBranchingCosts(int f1) const;
-		const SolType GetBranchingCosts0(int f1, int f2) const;
-		const SolType GetBranchingCosts1(int f1, int f2) const;
+		const SolType GetBranchingCosts0(int count0, int f1, int f2) const;
+		const SolType GetBranchingCosts1(int count1, int f1, int f2) const;
 		void ResetBranchingCosts();
 
+		int GetTotalCount() const { return counter.GetTotalCount(); }
 		void GetCounts(Counts& counts, int f1, int f2) const;
 		void GetCounts(Counts& counts, const IndexInfo& index) const;
 		int GetCount00(int f1, int f2) const;
@@ -89,6 +89,7 @@ namespace STreeD {
 		std::vector<std::vector<BranchSolD2Type>> branching_costs;
 		Counter counter;
 		std::vector<std::vector<IndexInfo>> index_infos;
+		mutable typename OT::SolD2Type temp_costs1, temp_costs2;
 	};
 
 }

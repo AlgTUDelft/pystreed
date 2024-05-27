@@ -6,7 +6,7 @@ from glob import glob
 # Define package metadata
 package_name = 'pystreed'
 extension_name = 'cstreed'
-__version__ = "1.2.3"
+__version__ = "1.3.0"
 
 ext_modules = [
     Pybind11Extension(package_name + '.' + extension_name,

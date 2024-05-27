@@ -14,9 +14,12 @@ import sys
 class BaseSTreeDSolver(BaseEstimator):
 
     _parameter_constraints: dict = {
-        "optimization_task": [StrOptions({"accuracy", "cost-complex-accuracy",  "cost-sensitive", "f1-score",
-                                          "group-fairness", "equality-of-opportunity", "prescriptive-policy",
-                                            "survival-analysis"})],
+        "optimization_task": [StrOptions({"accuracy", "cost-complex-accuracy", 
+                                          "regression", "cost-complex-regression", 
+                                          "piecewise-linear-regression", "simple-linear-regression",
+                                          "cost-sensitive", "f1-score", "prescriptive-policy", "instance-cost-sensitive",
+                                          "group-fairness", "equality-of-opportunity",
+                                          "survival-analysis"})],
         "max_depth": [Interval(numbers.Integral, 0, 20, closed="both")],
         "max_num_nodes": [Interval(numbers.Integral, 0, 1048575, closed="both"), None],
         "min_leaf_node_size": [Interval(numbers.Integral, 1, None, closed="left")],
@@ -247,6 +250,10 @@ class BaseSTreeDSolver(BaseEstimator):
         X = self._binarize_data(X, y, categorical)
         X, y = self._process_fit_data(X, y)
         extra_data = self._process_extra_data(X, extra_data)
+        # Store train data
+        self.train_X_ = X
+        self.train_y_ = y
+        self.train_extra_data_ = extra_data
 
         if self._should_reset_solver(X, y, extra_data):
             self._initialize_param_handler()
@@ -353,7 +360,7 @@ class BaseSTreeDSolver(BaseEstimator):
             feature_name, threshold = feature_name.split(" <= ")
             if len(threshold) >= 3:
                 threshold = _column_threshold(float(threshold))
-            return f"{feature_name} <= {threshold}"
+            return f"{feature_name} {self.__comparator} {threshold}"
         return feature_name
 
     def _recursive_print_tree(self, out, node, feature_names, label_names, ind=''):
@@ -377,6 +384,7 @@ class BaseSTreeDSolver(BaseEstimator):
         
         if feature_names is None and hasattr(self, "feature_names_in_"):
             feature_names = self.feature_names_in_
+        self.__comparator = "<="
 
         if filename is None:
             self._recursive_print_tree(sys.stdout, self.tree_, feature_names, label_names)
@@ -394,23 +402,25 @@ class BaseSTreeDSolver(BaseEstimator):
 
         if feature_names is None and hasattr(self, "feature_names_in_"):
             feature_names = self.feature_names_in_
+        train_data = (self.train_X_, self.train_y_, self.train_extra_data_)
+        self.__comparator = "&#8804;" # &#8804; is the <= character
 
-        with open(filename, "w") as fh:
+        with open(filename, "w", encoding="utf-8") as fh:
             fh.write("digraph Tree {\n")
             fh.write("node [shape=box, style=\"filled, rounded\", fontname=\"helvetica\", fontsize=\"8\"] ;\n")
             fh.write("edge [fontname=\"helvetica\", fontsize=\"6\"] ;\n")
-            self._recursive_export_dot(fh, self.tree_, 0, feature_names, label_names)
+            self._recursive_export_dot(fh, self.tree_, 0, feature_names, label_names, train_data)
             fh.write("}")
     
-    def _export_dot_leaf_node(self, fh, node, node_id, label_names, color=(200, 200, 200)):
+    def _export_dot_leaf_node(self, fh, node, node_id, label_names, train_data, color=(200, 200, 200)):
         label =  self._get_label_str(node.label, label_names)
         hex_color = "#{:02x}{:02x}{:02x}".format(*color)
         hex_line_color = "#{:02x}{:02x}{:02x}".format(*[int(0.4 * c) for c in color])
         fh.write(f"{node_id}  [label=\"{label}\", color=\"{hex_line_color}\" fillcolor=\"{hex_color}\"] ;\n")
 
-    def _recursive_export_dot(self, fh, node, node_id, feature_names, label_names):
+    def _recursive_export_dot(self, fh, node, node_id, feature_names, label_names, train_data):
         if node.is_leaf_node():
-            self._export_dot_leaf_node(fh, node, node_id, label_names)
+            self._export_dot_leaf_node(fh, node, node_id, label_names, train_data)
         else:
             predicate = self._get_predicate_str(node.feature, feature_names)
             fh.write(f"{node_id} [label=\"{predicate}\", color=\"#222222\", fillcolor=\"#EEEEEE\"] ;\n")
@@ -421,5 +431,13 @@ class BaseSTreeDSolver(BaseEstimator):
             fh.write(f"{parent_id} -> {node_id} [labeldistance=2.5, labelangle={angle}, label=\"{feature_label}\"] ;\n")
 
         if node.is_branching_node():
-            self._recursive_export_dot(fh, node.left_child, node_id * 2 + 1, feature_names, label_names)
-            self._recursive_export_dot(fh, node.right_child, node_id * 2 + 2, feature_names, label_names)
+            left_data, right_data = self._split(train_data, node.feature)
+            self._recursive_export_dot(fh, node.left_child, node_id * 2 + 1, feature_names, label_names, left_data)
+            self._recursive_export_dot(fh, node.right_child, node_id * 2 + 2, feature_names, label_names, right_data)
+
+    def _split(self, data, feature):
+        x, y, ed = data
+        go_left = x[:, feature] == 0
+        left_data =  (x[ go_left], y[ go_left], [e for i, e in enumerate(ed) if go_left[i]])
+        right_data = (x[~go_left], y[~go_left], [e for i, e in enumerate(ed) if not go_left[i]])
+        return left_data, right_data

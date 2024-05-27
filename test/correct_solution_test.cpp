@@ -61,6 +61,10 @@ struct F1ScoreTestSetup : TestSetup {
 	std::vector<F1ScoreSol> correct_solutions;
 };
 
+struct RegressionTestSetup : TestSetup {
+	double correct_solution;
+};
+
 struct SurvivalAnalysisSetup : TestSetup {
 	double correct_solution;
 };
@@ -159,6 +163,44 @@ void RunF1ScoreTest(const F1ScoreTestSetup& test, const SolverSetup& solver_setu
 
 }
 
+void RunRegressionTest(const RegressionTestSetup& test, const SolverSetup& solver_setup) {
+	ParameterHandler parameters = STreeD::ParameterHandler::DefineParameters();
+	parameters.SetIntegerParameter("max-depth", test.max_depth);
+	parameters.SetIntegerParameter("max-num-nodes", test.max_num_nodes);
+	parameters.SetStringParameter("file", test.file);
+	if (solver_setup.feature_ordering == "gini") return;
+	solver_setup.Apply(parameters);
+	auto rng = std::default_random_engine(0);
+	double correct_solution = test.correct_solution;
+
+	std::shared_ptr<SolverResult> result;
+	AData data;
+	ADataView train_data, test_data;
+	try {
+		auto solver = new STreeD::Solver<Regression>(parameters, &rng);
+		FileReader::ReadData<Regression>(parameters, data, train_data, test_data, &rng);
+		result = solver->Solve(train_data);
+		delete solver;
+	} catch (std::exception&) {
+		std::ostringstream os;
+		os << "An exception occured for " << test.ToString() << std::endl
+			<< solver_setup.ToString();
+		test_failed(os.str().c_str());
+	}
+	auto score = std::static_pointer_cast<InternalTrainScore<Regression>>(result->scores[0]);
+	double mse = score->score;
+
+	if (std::abs(mse - correct_solution) >= 1e-2) {
+		std::ostringstream os;
+		os << "Incorrect regression solution for " << test.ToString() << std::endl
+			<< solver_setup.ToString() << std::endl
+			<< "Found " << mse << ", instead of correct solution " << correct_solution << std::endl;
+		test_assert_m(std::abs(mse - correct_solution) < 1e-2 , os.str().c_str());
+	}
+
+
+}
+
 void RunSurvivalAnalysisTest(const SurvivalAnalysisSetup& test, const SolverSetup& solver_setup) {
 	ParameterHandler parameters = STreeD::ParameterHandler::DefineParameters();
 	parameters.SetIntegerParameter("max-depth", test.max_depth);
@@ -244,6 +286,7 @@ int main(int argc, char **argv) {
 	std::vector<SolverSetup> solver_setups;
 	EnumerateSolverSetupOptions(solver_setups);
 	
+
 	std::vector<AccuracyTestSetup> accuracy_tests{
 		{ "data/fairness/adult-binarized.csv", 2, 3, 8314 },
 		{ "data/fairness/adult-binarized.csv", 3, 7, 7514 },
@@ -252,6 +295,12 @@ int main(int argc, char **argv) {
 	
 	std::vector<F1ScoreTestSetup> f1_score_tests;
 	GetF1ScoreTests(f1_score_tests);
+
+	std::vector<RegressionTestSetup> regression_tests{
+		{"data/regression/airfoil.csv", 2, 3, 40.0968 },
+		{"data/regression/airfoil.csv", 3, 5, 38.26 },
+		{"data/regression/airfoil.csv", 4, 15, 33.8628 }
+	};
 
 	std::vector<SurvivalAnalysisSetup> survival_analysis_tests{
 		{"data/survival-analysis/colon_binary.txt", 2, 3, 0.70269 },
@@ -265,6 +314,9 @@ int main(int argc, char **argv) {
 		}
 		for (auto& f1ts : f1_score_tests) {
 			RunF1ScoreTest(f1ts, ss);
+		}
+		for (auto& rts : regression_tests) {
+			RunRegressionTest(rts, ss);
 		}
 		for (auto& sa_ts : survival_analysis_tests) {
 			RunSurvivalAnalysisTest(sa_ts, ss);

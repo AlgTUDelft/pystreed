@@ -107,7 +107,7 @@ class STreeDInstanceCostSensitiveClassifier(BaseSTreeDSolver):
     def _process_extra_data(self, X, extra_data):
         return extra_data
 
-    def fit(self, X, y):
+    def fit(self, X, y, categorical=None):
         """
         Fits a STreeD model to the given training data.
 
@@ -117,6 +117,9 @@ class STreeDInstanceCostSensitiveClassifier(BaseSTreeDSolver):
 
             y : array-like with shape (n_samples, n_labels) 
             Cost vector. For each instance specify the classification costs per label
+
+            categorical : array-like, 
+            List of column names that are categorical
 
         Returns:
             STreeDInstanceCostSensitiveClassifier
@@ -162,8 +165,8 @@ class STreeDInstanceCostSensitiveClassifier(BaseSTreeDSolver):
         y_test, extra_data = self._check_data(y_test, reset=False)
         return super().score(X, y_test, extra_data)
 
-    def _export_dot_leaf_node(self, fh, node, node_id, label_names):
+    def _export_dot_leaf_node(self, fh, node, node_id, label_names, train_data):
         if not hasattr(self, "_colors"):
             self._colors = _color_brew(self.n_classes_)
         color = self._colors[node.label]
-        return super()._export_dot_leaf_node(fh, node, node_id, label_names, color=color)
+        return super()._export_dot_leaf_node(fh, node, node_id, label_names, train_data, color=color)

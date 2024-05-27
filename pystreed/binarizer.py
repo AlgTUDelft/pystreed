@@ -19,7 +19,7 @@ def get_column_types(X, categorical_columns=None):
     binary_columns = []
     if isinstance(X, pd.DataFrame):
         categorical_columns = categorical_columns + [col for col in X.columns if not col in categorical_columns and not is_numeric_dtype(X[col])]
-        binary_columns = [col for col in X.columns if not set(np.unique(X[[col]])) - set([0,1])] 
+        binary_columns = [col for col in X.columns if not set(X[col].unique()) - set([0,1])] 
         continuous_columns = [col for col in X.columns if not col in categorical_columns and not col in binary_columns]
     elif isinstance(X, np.ndarray):
         binary_columns = [col for col in range(X.shape[1]) if not set(np.unique(X[:, col])) - set([0,1])]
@@ -102,6 +102,9 @@ class Binarizer:
             if len(self.continuous_columns) > 0:
                 X_cont = X[:, self.continuous_columns]
         if len(self.binary_columns) > 0:
+            if isinstance(X_bin, pd.DataFrame) and not is_numeric_dtype(X_bin):
+                X_bin.columns = [f"Binary Feature {i+1}" for i in range(X_bin.shape[1])] 
+                X = X.rename(str,axis="columns")
             parts.append(X_bin)
         if len(self.categorical_columns) > 0:
             X_cat = self.categorical_binarizer.transform(X_cat)

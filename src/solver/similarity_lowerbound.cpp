@@ -138,6 +138,11 @@ namespace STreeD {
 	template class SimilarityLowerBoundComputer<Accuracy>;
 	template class SimilarityLowerBoundComputer<CostComplexAccuracy>;
 
+	template class SimilarityLowerBoundComputer<Regression>;
+	template class SimilarityLowerBoundComputer<CostComplexRegression>;
+	template class SimilarityLowerBoundComputer<SimpleLinearRegression>;
+	template class SimilarityLowerBoundComputer<PieceWiseLinearRegression>;
+
 	template class SimilarityLowerBoundComputer<CostSensitive>;
 	template class SimilarityLowerBoundComputer<InstanceCostSensitive>;
 	template class SimilarityLowerBoundComputer<F1Score>;

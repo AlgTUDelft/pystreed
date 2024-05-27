@@ -89,7 +89,7 @@ class STreeDSurvivalAnalysis(BaseSTreeDSolver):
             return [SAData(1, -1.0) for x in X]    
         return [SAData(e, -1.0) for e in events]
 
-    def fit(self, X, y):
+    def fit(self, X, y, categorical=None):
         """
         Fits a STreeD survival tree model to the given training data.
 
@@ -103,6 +103,9 @@ class STreeDSurvivalAnalysis(BaseSTreeDSolver):
             as first field, and time of event or time of censoring as
             second field.
 
+        categorical : array-like, 
+            List of column names that are categorical
+
         Returns
         -------
         self
@@ -115,7 +118,7 @@ class STreeDSurvivalAnalysis(BaseSTreeDSolver):
         self.n_outputs_ = self.unique_times_.shape[0]
         self.n_classes_ = np.ones(self.n_outputs_, dtype=np.intp) * 2
 
-        return super().fit(X, times, events)
+        return super().fit(X, times, events, categorical)
     
     def score(self, X, y_true):
         """
@@ -343,7 +346,7 @@ class STreeDSurvivalAnalysis(BaseSTreeDSolver):
         return _array_to_step_function(self.unique_times_, arr)
     
 
-    def _export_dot_leaf_node(self, fh, node, node_id, label_names):
+    def _export_dot_leaf_node(self, fh, node, node_id, label_names, train_data):
         try:
             import matplotlib.pyplot as plt
             theta = node.label
@@ -360,7 +363,7 @@ class STreeDSurvivalAnalysis(BaseSTreeDSolver):
             plt.savefig(filename, dpi=300, bbox_inches="tight")
             fh.write(f"{node_id}  [label=\"\", image=\"{filename}\", width=2, height=2, fixedsize=true] ;\n")
         except:
-            return super()._export_dot_leaf_node(fh, node, node_id, label_names)
+            return super()._export_dot_leaf_node(fh, node, node_id, label_names, train_data)
 
 
     def export_dot(self, filename, feature_names=None, label_names=None):

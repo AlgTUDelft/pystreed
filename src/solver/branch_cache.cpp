@@ -213,7 +213,12 @@ namespace STreeD {
 
 	template class BranchCache<Accuracy>;
 	template class BranchCache<CostComplexAccuracy>;
-	
+
+	template class BranchCache<Regression>;
+	template class BranchCache<CostComplexRegression>;
+	template class BranchCache<PieceWiseLinearRegression>;
+	template class BranchCache<SimpleLinearRegression>;
+
 	template class BranchCache<CostSensitive>;
 	template class BranchCache<InstanceCostSensitive>;
 	template class BranchCache<F1Score>;

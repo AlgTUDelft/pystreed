@@ -227,6 +227,11 @@ namespace STreeD {
 	template class DatasetCache<Accuracy>;
 	template class DatasetCache<CostComplexAccuracy>;
 
+	template class DatasetCache<Regression>;
+	template class DatasetCache<CostComplexRegression>;
+	template class DatasetCache<PieceWiseLinearRegression>;
+	template class DatasetCache<SimpleLinearRegression>;
+
 	template class DatasetCache<CostSensitive>;
 	template class DatasetCache<InstanceCostSensitive>;
 	template class DatasetCache<F1Score>;

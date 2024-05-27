@@ -18,7 +18,8 @@ namespace STreeD {
 		right.size = 0;
 		//std::vector<std::vector<std::vector<int>>> label_indices(NumLabels(), std::vector<std::vector<int>>(2)); // second index: 0=left, 1=right
 		for (int label = 0; label < NumLabels(); label++) {
-			for (auto& instance : GetInstancesForLabel(label)) {
+			auto& _instances = GetInstancesForLabel(label);
+			for (auto& instance : _instances) {
 				if (instance->IsFeaturePresent(feature)) {
 					right.instances[label].push_back(instance);
 				} else {
@@ -27,7 +28,7 @@ namespace STreeD {
 			}
 			left.size += int(left.instances[label].size());
 			right.size += int(right.instances[label].size());
-			runtime_assert(left.instances[label].size() + right.instances[label].size() == instances[label].size());
+			runtime_assert(left.instances[label].size() + right.instances[label].size() == _instances.size());
 		}
 		runtime_assert(left.size + right.size == size);
 	}

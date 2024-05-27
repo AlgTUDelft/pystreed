@@ -63,7 +63,7 @@ class STreeDCostSensitiveClassifier(BaseSTreeDSolver):
     def _binarize_data(self, X, y=None, categorical_columns=None, reset=True):
         return X
 
-    def fit(self, X, y, cost_specifier : CostSpecifier):
+    def fit(self, X, y, cost_specifier : CostSpecifier, categorical=None):
         """
         Fits a STreeD model to the given training data.
 
@@ -77,6 +77,9 @@ class STreeDCostSensitiveClassifier(BaseSTreeDSolver):
             cost_specifier : CostSpecifier
             An object that describes the misclassification matrix and the feature cost function
 
+            categorical : array-like, 
+            List of column names that are categorical
+
         Returns:
             BaseSTreeDSolver
 
@@ -85,10 +88,10 @@ class STreeDCostSensitiveClassifier(BaseSTreeDSolver):
         """
         self.n_classes_ = len(np.unique(y))
         self.cost_specifier_ = cost_specifier
-        return super().fit(X, y)
+        return super().fit(X, y, categorical)
         
-    def _export_dot_leaf_node(self, fh, node, node_id, label_names):
+    def _export_dot_leaf_node(self, fh, node, node_id, label_names, train_data):
         if not hasattr(self, "_colors"):
             self._colors = _color_brew(self.n_classes_)
         color = self._colors[node.label]
-        return super()._export_dot_leaf_node(fh, node, node_id, label_names, color=color)
+        return super()._export_dot_leaf_node(fh, node, node_id, label_names, train_data, color=color)

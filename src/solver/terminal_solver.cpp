@@ -23,11 +23,11 @@ namespace STreeD {
 
 	template <class OT>
 	TerminalResults<OT>& TerminalSolver<OT>::Solve(const ADataView& data, const typename TerminalSolver<OT>::Context& context, typename TerminalSolver<OT>::SolContainer& UB, int num_nodes) {
-		results.Clear();
 		this->UB = UB;
-
 		bool changes_made = cost_calculator.Initialize(data, context, num_nodes);
 		if (!changes_made) return results;
+		results.Clear();
+		if (cost_calculator.GetTotalCount() < solver_parameters->minimum_leaf_node_size) return results;
 		InitialiseChildrenInfo(context, data);
 		SolveOneNode(data, context, true);
 		if (num_nodes == 1) {
@@ -61,11 +61,11 @@ namespace STreeD {
 					continue;
 				}
 
-				const auto branch_left_costs = cost_calculator.GetBranchingCosts0(f1, f2);
-				const auto branch_right_costs = cost_calculator.GetBranchingCosts1(f1, f2);
+				const auto branch_left_costs = cost_calculator.GetBranchingCosts0(counts.count00  + counts.count01, f1, f2);
+				const auto branch_right_costs = cost_calculator.GetBranchingCosts1(counts.count10 + counts.count11 , f1, f2);
 
-				const auto branch_left_costs_rev = cost_calculator.GetBranchingCosts0(f2, f1);
-				const auto branch_right_costs_rev = cost_calculator.GetBranchingCosts1(f2, f1);
+				const auto branch_left_costs_rev = cost_calculator.GetBranchingCosts0(counts.count00  + counts.count10 , f2, f1);
+				const auto branch_right_costs_rev = cost_calculator.GetBranchingCosts1(counts.count01 + counts.count11, f2, f1);
 
 
 
@@ -128,18 +128,19 @@ namespace STreeD {
 		SetSolSizeBudget<OT>(result, 1, 1);
 
 		Node<OT> node;
-		// Add leaf nodes
-		if constexpr (OT::custom_leaf) {
-			AddSol<OT>(result, task->SolveLeafNode(data, context));
-		} else {
+		typename TerminalSolver<OT>::SolType merged_sol;
+		{
+			typename OT::SolLabelType out_label;
 			for (int label = 0; label < data.NumLabels(); label++) {
-				node = Node<OT>(label, task->GetLeafCosts(data, context, label));
+				cost_calculator.CalcLeafSol(merged_sol, label, out_label);
+				node.Set(INT32_MAX, out_label, merged_sol, 0, 0);
+
 				if (OT::has_constraint && !SatisfiesConstraint(node, context)) continue;
 				if (OT::terminal_filter && LeftStrictDominatesRightSol<OT>(UB, node)) continue;
 				AddSol<OT>(result, node);
 			}
 		}
-		typename TerminalSolver<OT>::SolType merged_sol;
+		
 		bool computed_leaves = false;
 
 		if (initialized) {
@@ -209,33 +210,44 @@ namespace STreeD {
 		auto& child_info = children_info[root_feature];
 		const auto& left_context = child_info.left_context;
 		const auto& right_context = child_info.right_context;
+		Counts counts;
+		IndexInfo index;
+		
 		auto left_leaves = InitializeSol<OT>();
+		auto right_leaves = InitializeSol<OT>();
 
-		int left_size = cost_calculator.GetCount00(root_feature, root_feature);
+		cost_calculator.GetIndexInfo(root_feature, root_feature, index);
+		cost_calculator.GetCounts(counts, index);
+		int left_size = counts.count00;
+		int right_size = counts.count11;
+
+		typename OT::SolD2Type costs;
+		typename TerminalSolver<OT>::SolType leaf_sol;
+		typename OT::SolLabelType assign_label;
+
+		Node<OT> node;
 		if (left_size >= solver_parameters->minimum_leaf_node_size) {
 			for (int label = 0; label < num_labels; label++) {
-				//PartialSolution left_leaf(cost_calculator.GetCosts00(label, root_feature, root_feature));
-				typename TerminalSolver<OT>::SolType left_leaf;
-				cost_calculator.CalcSol00(left_leaf, label, root_feature, root_feature);
-				auto assign_label = cost_calculator.GetLabel00(label, root_feature, root_feature);
-				Node<OT> left_leaf_sol(assign_label, left_leaf);
-				if (OT::has_constraint && !SatisfiesConstraint(left_leaf_sol, left_context)) continue;
-				if (OT::terminal_filter && LeftStrictDominatesRightSol<OT>(UB, left_leaf_sol)) continue;
-				AddSol<OT>(left_leaves, left_leaf_sol);
+				costs = cost_calculator.GetCosts00(label, root_feature, root_feature);
+				task->ComputeD2Costs(costs, left_size, leaf_sol);
+				assign_label = cost_calculator.GetLabel(label, costs, left_size);
+				node.Set(INT32_MAX, assign_label, leaf_sol, 0, 0);
+				//node.Set(INT32_MAX, OT::worst_label, sols[label].sol00, 0, 0);
+				if (OT::has_constraint && !SatisfiesConstraint(node, left_context)) continue;
+				if (OT::terminal_filter && LeftStrictDominatesRightSol<OT>(UB, node)) continue;
+				AddSol<OT>(left_leaves, node);
 			}
 		}
-
-		auto right_leaves = InitializeSol<OT>();
-		int right_size = cost_calculator.GetCount11(root_feature, root_feature);
 		if (right_size >= solver_parameters->minimum_leaf_node_size) {
 			for (int label = 0; label < num_labels; label++) {
-				typename TerminalSolver<OT>::SolType right_leaf;
-				cost_calculator.CalcSol11(right_leaf, label, root_feature, root_feature);
-				auto assign_label = cost_calculator.GetLabel11(label, root_feature, root_feature);
-				Node<OT> right_leaf_sol(assign_label, right_leaf);
-				if (OT::has_constraint && !SatisfiesConstraint(right_leaf_sol, right_context)) continue;
-				if (OT::terminal_filter && LeftStrictDominatesRightSol<OT>(UB, right_leaf_sol)) continue;
-				AddSol<OT>(right_leaves, right_leaf_sol);
+				costs = cost_calculator.GetCosts11(label, root_feature, root_feature);
+				task->ComputeD2Costs(costs, right_size, leaf_sol);
+				assign_label = cost_calculator.GetLabel(label, costs, right_size);
+				node.Set(INT32_MAX, assign_label, leaf_sol, 0, 0);
+				//node.Set(INT32_MAX, OT::worst_label, sols[label].sol11, 0, 0);
+				if (OT::has_constraint && !SatisfiesConstraint(node, right_context)) continue;
+				if (OT::terminal_filter && LeftStrictDominatesRightSol<OT>(UB, node)) continue;
+				AddSol<OT>(right_leaves, node);
 			}
 		}
 
@@ -381,7 +393,7 @@ namespace STreeD {
 					cost_calculator.CalcSols(counts, sols[label], label, node.feature, f2);
 				}
 				if (node.num_nodes_left > 0 && counts.count00 >= solver_parameters->minimum_leaf_node_size && counts.count01 >= solver_parameters->minimum_leaf_node_size) {
-					auto branching_costs = cost_calculator.GetBranchingCosts0(node.feature, f2);
+					auto branching_costs = cost_calculator.GetBranchingCosts0(counts.count00 + counts.count01, node.feature, f2);
 					for (int left_label = 0; left_label < num_labels; left_label++) {
 						for (int right_label = 0; right_label < num_labels; right_label++) {
 							//if (num_labels > 1 && left_label == right_label) continue;
@@ -404,7 +416,7 @@ namespace STreeD {
 				}
 				
 				if (node.num_nodes_right > 0 && counts.count10 >= solver_parameters->minimum_leaf_node_size && counts.count11 >= solver_parameters->minimum_leaf_node_size) {
-					auto branching_costs = cost_calculator.GetBranchingCosts1(node.feature, f2);
+					auto branching_costs = cost_calculator.GetBranchingCosts1(counts.count10 + counts.count11, node.feature, f2);
 					for (int left_label = 0; left_label < num_labels; left_label++) {
 						for (int right_label = 0; right_label < num_labels; right_label++) {
 							//if (num_labels > 1 && left_label == right_label) continue;
@@ -428,10 +440,10 @@ namespace STreeD {
 			}
 		}
 		if constexpr (OT::total_order) {
-			//runtime_assert(left_solution.parent.IsFeasible());
-			//runtime_assert(right_solution.parent.IsFeasible
+			runtime_assert(left_solution.parent.IsFeasible());
+			runtime_assert(right_solution.parent.IsFeasible());
 			if (!left_solution.parent.IsFeasible() || !right_solution.parent.IsFeasible()) {
-				throw std::runtime_error("Could not reconstruct the tree in the terminal solver.");
+				throw std::runtime_error("Could not find a feasible tree for the given solution.");
 			}
 			tree_node.Set(node, left_solution.parent, right_solution.parent);
 			return Tree<OT>::CreateD2TreeFromTreeNodes(tree_node, left_solution, right_solution);
@@ -446,11 +458,16 @@ namespace STreeD {
 				}
 			}
 			runtime_assert(1 == 0);
+			throw std::runtime_error("Could not find a feasible tree for the given solution.");
 		}
 	}
 
 	template class TerminalSolver<Accuracy>;
 	template class TerminalSolver<CostComplexAccuracy>;
+
+	template class TerminalSolver<Regression>;
+	template class TerminalSolver<CostComplexRegression>;
+	template class TerminalSolver<SimpleLinearRegression>;
 
 	template class TerminalSolver<CostSensitive>;
 	template class TerminalSolver<InstanceCostSensitive>;

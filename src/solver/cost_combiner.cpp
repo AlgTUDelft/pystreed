@@ -80,6 +80,10 @@ namespace STreeD {
 		typename OT::SolD2Type& costs,
 		int multiplier,
 		bool only_one_dimension) {
+		
+		if constexpr (OT::use_weights) {
+			multiplier *= int(data_point->GetWeight());
+		}
 
 		const int num_present_features = data_point->NumPresentFeatures();
 		if constexpr (update_cost) {
@@ -135,11 +139,16 @@ namespace STreeD {
 						UpdateCountCost<OT, true, true>(data_point, _cost_storage, counter, costs, multiplier, only_one_dimension);
 					}
 				}
+				if constexpr (OT::use_weights) {
+					counter.UpdateTotalCount(int(data_point->GetWeight() * multiplier));
+				}
 			}
 			
 
 		}
-		counter.UpdateTotalCount(int(data.Size() * multiplier));			
+		if constexpr (!OT::use_weights) {
+			counter.UpdateTotalCount(int(data.Size() * multiplier));
+		}
 	}
 
 	template <class OT>
@@ -172,10 +181,11 @@ namespace STreeD {
 					}
 				}
 				
-				
+				int weight = int(data_point->GetWeight());
+				counter.UpdateTotalCount(weight);
 				for (int j = 0; j < num_present_features; j++) {
 					int feature2 = data_point->GetJthPresentFeature(j);
-					counter.UpdateCount(feature2, feature2, +1);
+					counter.UpdateCount(feature2, feature2, weight);
 				}
 				if (!feature_is_present) continue;
 				for (int j = 0; j < num_present_features; j++) {
@@ -183,13 +193,12 @@ namespace STreeD {
 					int feature2 = data_point->GetJthPresentFeature(j);
 					if (feature1 == feature2) continue;
 					if (feature1 > feature2) std::swap(feature1, feature2);
-					counter.UpdateCount(feature1, feature2, +1);
+					counter.UpdateCount(feature1, feature2, weight);
 				}
 			}
 
-
 		}
-		counter.UpdateTotalCount(int(data.Size()));
+		
 	}
 
 	template <class OT>
@@ -234,20 +243,33 @@ namespace STreeD {
 	}
 
 	template <class OT>
-	const typename CostCalculator<OT>::SolType CostCalculator<OT>::GetBranchingCosts0(int f1, int f2) const {
+	const typename CostCalculator<OT>::SolType CostCalculator<OT>::GetBranchingCosts0(int count0, int f1, int f2) const {
 		if constexpr (OT::has_branching_costs) {
-			return task->ComputeD2BranchingCosts(branching_costs[f1][f2], GetCount00(f1, f1));
+			return task->ComputeD2BranchingCosts(branching_costs[f1][f2], count0);
 		} else {
 			return CostCalculator<OT>::SolType();
 		}
 	}
 
 	template <class OT>
-	const typename CostCalculator<OT>::SolType CostCalculator<OT>::GetBranchingCosts1(int f1, int f2) const {
+	const typename CostCalculator<OT>::SolType CostCalculator<OT>::GetBranchingCosts1(int count1, int f1, int f2) const {
 		if constexpr (OT::has_branching_costs) {
-			return task->ComputeD2BranchingCosts(branching_costs[f1][f2], GetCount11(f1, f1));
+			return task->ComputeD2BranchingCosts(branching_costs[f1][f2], count1);
 		} else {
 			return CostCalculator<OT>::SolType();
+		}
+	}
+
+	template <class OT>
+	void CostCalculator<OT>::CalcLeafSol(SolType& sol, int label, SolLabelType& label_out) const {
+		const auto& _cost_storage = cost_storage[label];
+		const auto& total_costs = _cost_storage.GetTotalCosts();
+		int count = counter.GetTotalCount();
+		task->ComputeD2Costs(total_costs, count, sol);
+		if constexpr (OT::custom_get_label || std::is_same<typename OT::LabelType, double>::value) {
+			label_out = GetLabel(label, total_costs, count);
+		} else {
+			label_out = label;
 		}
 	}
 
@@ -266,7 +288,12 @@ namespace STreeD {
 			task->ComputeD2Costs(costsf1f2, counts.count11, sols.sol11);
 			return;
 		}
-		task->ComputeD2Costs((total_costs + costsf1f2) - costsf1f1 - costsf2f2 , counts.count00, sols.sol00);
+		temp_costs1 = total_costs;
+		temp_costs1 += costsf1f2;
+		temp_costs1 -= costsf1f1;
+		temp_costs1 -= costsf2f2;
+		//task->ComputeD2Costs((total_costs + costsf1f2) - costsf1f1 - costsf2f2 , counts.count00, sols.sol00);
+		task->ComputeD2Costs(temp_costs1, counts.count00, sols.sol00);
 		task->ComputeD2Costs(costsf1f2, counts.count11, sols.sol11);
 		if (swap) {
 			task->ComputeD2Costs(costsf2f2 - costsf1f2, counts.count10, sols.sol10);
@@ -290,15 +317,27 @@ namespace STreeD {
 			task->ComputeD2Costs(costsf1f2, counts.count11, sols.sol11);
 			return;
 		}
-		task->ComputeD2Costs((total_costs + costsf1f2) - costsf1f1 - costsf2f2, counts.count00, sols.sol00);
+		// Temp_costs2 = costs for f1, but not f2
+		temp_costs2 = costsf1f1;
+		temp_costs2 -= costsf1f2;
+
+		// Temp costs1 = costs for neither f1 nor f2
+		temp_costs1 = total_costs;
+		temp_costs1 -= temp_costs2;
+		temp_costs1 -= costsf2f2;
+		task->ComputeD2Costs(temp_costs1, counts.count00, sols.sol00);
 		task->ComputeD2Costs(costsf1f2, counts.count11, sols.sol11);
 		if (index.swap) {
 			task->ComputeD2Costs(costsf2f2 - costsf1f2, counts.count10, sols.sol10);
 			task->ComputeD2Costs(costsf1f1 - costsf1f2, counts.count01, sols.sol01);
 			return;
 		}
-		task->ComputeD2Costs(costsf2f2 - costsf1f2, counts.count01, sols.sol01);
-		task->ComputeD2Costs(costsf1f1 - costsf1f2, counts.count10, sols.sol10);
+		// Temp costs1 = costs for f2 but not f1
+		temp_costs1 = costsf2f2;
+		temp_costs1 -= costsf1f2;
+		task->ComputeD2Costs(temp_costs1, counts.count01, sols.sol01);
+		// temp costs2 is still costs for f1 but not f2
+		task->ComputeD2Costs(temp_costs2, counts.count10, sols.sol10);
 	}
 
 	template <class OT>
@@ -315,24 +354,6 @@ namespace STreeD {
 			const auto& costsf2f2 = _cost_storage.GetCosts(f2, f2);
 			task->ComputeD2Costs(total_costs + costsf1f2 - costsf1f1 - costsf2f2 , GetCount00(f1, f2), sol);
 		}
-	}
-
-	template <class OT>
-	void CostCalculator<OT>::CalcSol01(typename CostCalculator<OT>::SolType& sol, int label, int f1, int f2) const {
-		if (f1 > f2) return CalcSol10(sol, label, f2, f1);
-		const auto& _cost_storage = cost_storage[label];
-		const auto& costsf2f2 = _cost_storage.GetCosts(f2, f2);
-		const auto& costsf1f2 = _cost_storage.GetCosts(f1, f2);
-		task->ComputeD2Costs(costsf2f2 - costsf1f2, GetCount01(f1, f2), sol);
-	}
-
-	template <class OT>
-	void CostCalculator<OT>::CalcSol10(typename CostCalculator<OT>::SolType& sol, int label, int f1, int f2) const {
-		if (f1 > f2) return CalcSol01(sol, label, f2, f1);
-		const auto& _cost_storage = cost_storage[label];
-		const auto& costsf1f1 = _cost_storage.GetCosts(f1, f1);
-		const auto& costsf1f2 = _cost_storage.GetCosts(f1, f2);
-		task->ComputeD2Costs(costsf1f1 - costsf1f2, GetCount10(f1, f2), sol);
 	}
 
 	template <class OT>
@@ -425,16 +446,16 @@ namespace STreeD {
 		return counter.GetCount(f1, f2);
 	}
 
-	template <class OT>
-	const typename CostCalculator<OT>::SolLabelType CostCalculator<OT>::GetLeafLabel(int label) const {
-		if constexpr (OT::custom_get_label || std::is_same<typename OT::LabelType, double>::value) {
-			auto sum = GetCosts00(label, 0, 0) + GetCosts11(label, 0, 0);
-			int count = GetCount00(0, 0) + GetCount11(0, 0);
-			return task->GetLabel(sum, count);
-		} else {
-			return label;
-		}
-	}
+	//template <class OT>
+	//const typename CostCalculator<OT>::SolLabelType CostCalculator<OT>::GetLeafLabel(int label) const {
+	//	if constexpr (OT::custom_get_label || std::is_same<typename OT::LabelType, double>::value) {
+	//		auto sum = GetCosts00(label, 0, 0) + GetCosts11(label, 0, 0);
+	//		int count = GetCount00(0, 0) + GetCount11(0, 0);
+	//		return task->GetLabel(sum, count);
+	//	} else {
+	//		return label;
+	//	}
+	//}
 
 	template <class OT>
 	const typename CostCalculator<OT>::SolLabelType CostCalculator<OT>::GetLabel00(int label, int f1, int f2) const {
@@ -472,8 +493,21 @@ namespace STreeD {
 		}
 	}
 
+	template <class OT>
+	const typename CostCalculator<OT>::SolLabelType CostCalculator<OT>::GetLabel(int label, const typename CostCalculator<OT>::SolD2Type& costs, int count) const {
+		if constexpr (OT::custom_get_label || std::is_same<typename OT::LabelType, double>::value) {
+			return task->GetLabel(costs, count);
+		} else {
+			return label;
+		}
+	}
+
 	template class CostCalculator<Accuracy>;
 	template class CostCalculator<CostComplexAccuracy>;
+
+	template class CostCalculator<Regression>;
+	template class CostCalculator<CostComplexRegression>;
+	template class CostCalculator<SimpleLinearRegression>;
 
 	template class CostCalculator<CostSensitive>;
 	template class CostCalculator<InstanceCostSensitive>;

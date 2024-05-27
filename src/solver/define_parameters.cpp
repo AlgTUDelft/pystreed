@@ -20,8 +20,11 @@ namespace STreeD {
 			"Task to optimize.",
 			"accuracy",
 			"Main Parameters",
-			{"accuracy", "cost-complex-accuracy", "f1-score", "group-fairness", "survival-analysis",
-			"equality-of-opportunity", "cost-sensitive", "prescriptive-policy", "instance-cost-sensitive"}
+			{ "accuracy", "cost-complex-accuracy", 
+			"f1-score", "group-fairness", "survival-analysis",
+			"regression", "cost-complex-regression", "piecewise-linear-regression",
+			"simple-linear-regression", "equality-of-opportunity", "cost-sensitive",
+			"prescriptive-policy", "instance-cost-sensitive" }
 		);
 
 		parameters.DefineBooleanParameter
@@ -186,6 +189,14 @@ namespace STreeD {
 			"Algorithmic Parameters"
 		);
 
+		parameters.DefineBooleanParameter
+		(
+			"use-task-lower-bound",
+			"Use task defined lower bounding for tasks that define a custom lower bound. Disabling this option may be better for some benchmarks if the custom bound takes long to compute.",
+			true,
+			"Algorithmic Parameters"
+		);
+
 		parameters.DefineFloatParameter(
 			"upper-bound",
 			"Search for a tree better than the provided upper bound (numeric).",
@@ -218,6 +229,7 @@ namespace STreeD {
 		(
 			"use-branch-caching",
 			"Use branch caching to store computed subtrees.",
+			//\"Dataset\" is more powerful than \"branch\" but may required more computational time. Need to be determined experimentally. \"Closure\" is experimental and typically slower than other options.",
 			false, //default value
 			"Algorithmic Parameters"
 		);
@@ -279,6 +291,36 @@ namespace STreeD {
 			"Objective Parameters",
 			0.0, //min value
 			1.0 //max value
+		);
+
+		parameters.DefineFloatParameter
+		(
+			"lasso-penalty",
+			"The lasso lambda penalty.",
+			0.00, // default value
+			"Objective Parameters",
+			0.0, //min value
+			1e12 //max value
+		);
+
+		parameters.DefineFloatParameter
+		(
+			"ridge-penalty",
+			"The ridge gamma penalty.",
+			0.00, // default value
+			"Objective Parameters",
+			0.0, //min value
+			1e12 //max value
+		);
+
+		parameters.DefineStringParameter
+		(
+			"regression-bound",
+			"The type of bound to use, only for cost-complex-regression task.",
+			"equivalent", //default value
+			"Task-specific Parameters",
+			{ "equivalent", "kmeans" },
+			true
 		);
 
 		return parameters;

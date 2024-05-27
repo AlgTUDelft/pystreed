@@ -71,6 +71,11 @@ namespace STreeD {
 	template class Cache<Accuracy>;
 	template class Cache<CostComplexAccuracy>;
 
+	template class Cache<Regression>;
+	template class Cache<CostComplexRegression>;
+	template class Cache<PieceWiseLinearRegression>;
+	template class Cache<SimpleLinearRegression>;
+
 	template class Cache<CostSensitive>;
 	template class Cache<InstanceCostSensitive>;
 	template class Cache<F1Score>;

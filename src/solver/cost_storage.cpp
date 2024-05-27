@@ -22,9 +22,7 @@ namespace STreeD {
 
 	template <class OT>
 	void CostStorage<OT>::ResetToZeros() {
-		for (int j = 0; j < NumElements(); j++) {
-			data2d[j] = CostStorage<OT>::SolD2Type(); // Must have a default constructor
-			}
+		std::fill(data2d.begin(), data2d.end(), CostStorage<OT>::SolD2Type());
 		total_costs = CostStorage<OT>::SolD2Type();
 	}
 
@@ -68,6 +66,10 @@ namespace STreeD {
 
 	template class CostStorage<Accuracy>;
 	template class CostStorage<CostComplexAccuracy>;
+
+	template class CostStorage<Regression>;
+	template class CostStorage<CostComplexRegression>;
+	template class CostStorage<SimpleLinearRegression>;
 
 	template class CostStorage<CostSensitive>;
 	template class CostStorage<InstanceCostSensitive>;

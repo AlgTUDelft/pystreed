@@ -17,6 +17,11 @@ if (CMAKE_BUILD_TYPE STREQUAL Release)
 else()
 	message(STATUS "Compiling in debug mode")	
 	add_compile_definitions(DEBUG=1)
+	if (MSVC)
+	  add_compile_options(/bigobj)
+	else ()
+	  add_compile_options(-Wa,-mbig-obj)
+	endif ()
 endif()
 
 # Headers
@@ -39,6 +44,7 @@ set(STREED_HEADER_FILES
 	${PROJECT_INCLUDE_DIR}/model/node.h
 	${PROJECT_INCLUDE_DIR}/model/container.h
 	
+
 	${PROJECT_INCLUDE_DIR}/solver/result.h
 	${PROJECT_INCLUDE_DIR}/solver/feature_selector.h
 	${PROJECT_INCLUDE_DIR}/solver/difference_computer.h
@@ -69,6 +75,15 @@ set(STREED_HEADER_FILES
 
 	${PROJECT_INCLUDE_DIR}/tasks/accuracy/accuracy.h
 	${PROJECT_INCLUDE_DIR}/tasks/accuracy/cost_complex_accuracy.h
+
+	${PROJECT_INCLUDE_DIR}/tasks/regression/regression.h
+	${PROJECT_INCLUDE_DIR}/tasks/regression/cost_complex_regression.h
+	${PROJECT_INCLUDE_DIR}/tasks/regression/piecewise_simple_linear_regression.h
+	${PROJECT_INCLUDE_DIR}/tasks/regression/piecewise_linear_regression.h
+	${PROJECT_INCLUDE_DIR}/tasks/regression/ckmeans/Ckmeans.1d.dp.h
+	${PROJECT_INCLUDE_DIR}/tasks/regression/ckmeans/precision.h
+	${PROJECT_INCLUDE_DIR}/tasks/regression/ckmeans/within_cluster.h
+	
 )
 
 set(STREED_SRC_FILES
@@ -107,6 +122,14 @@ set(STREED_SRC_FILES
 
 	${PROJECT_SOURCE_DIR}/tasks/accuracy/accuracy.cpp
 	${PROJECT_SOURCE_DIR}/tasks/accuracy/cost_complex_accuracy.cpp
+
+	${PROJECT_SOURCE_DIR}/tasks/regression/regression.cpp
+	${PROJECT_SOURCE_DIR}/tasks/regression/cost_complex_regression.cpp
+	${PROJECT_SOURCE_DIR}/tasks/regression/piecewise_linear_regression.cpp
+	${PROJECT_SOURCE_DIR}/tasks/regression/piecewise_simple_linear_regression.cpp
+	${PROJECT_SOURCE_DIR}/tasks/regression/ckmeans/Ckmeans.1d.dp.cpp
+	${PROJECT_SOURCE_DIR}/tasks/regression/ckmeans/fill_log_linear.cpp
+	${PROJECT_SOURCE_DIR}/tasks/regression/ckmeans/fill_SMAWK.cpp
 
 	${STREED_HEADER_FILES}
 )

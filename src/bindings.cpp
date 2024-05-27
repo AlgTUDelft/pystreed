@@ -14,6 +14,10 @@ using namespace STreeD;
 enum task_type {
     accuracy,
     cost_complex_accuracy,
+    regression,
+    cost_complex_regression,
+    spwl_regression,
+    pwl_regression,
     cost_sensitive,
     instance_cost_sensitive,
     f1score,
@@ -26,6 +30,10 @@ enum task_type {
 task_type get_task_type_code(std::string& task) {
     if (task == "accuracy") return accuracy;
     else if (task == "cost-complex-accuracy") return cost_complex_accuracy;
+    else if (task == "regression") return regression;
+    else if (task == "cost-complex-regression") return cost_complex_regression;
+    else if (task == "simple-linear-regression") return spwl_regression;
+    else if (task == "piecewise-linear-regression") return pwl_regression;
     else if (task == "cost-sensitive") return cost_sensitive;
     else if (task == "instance-cost-sensitive") return instance_cost_sensitive;
     else if (task == "f1-score") return f1score;
@@ -246,8 +254,12 @@ PYBIND11_MODULE(cstreed, m) {
     ExposeBooleanProperty(parameter_handler, "use-similarity-lower-bound", "use_similarity_lower_bound");
     ExposeBooleanProperty(parameter_handler, "use-upper-bound", "use_upper_bound");
     ExposeBooleanProperty(parameter_handler, "use-lower-bound", "use_lower_bound");
+    ExposeBooleanProperty(parameter_handler, "use-task-lower-bound", "use_task_lower_bound");
     ExposeFloatProperty(parameter_handler, "upper-bound", "upper_bound");
     ExposeStringProperty(parameter_handler, "ppg-teacher-method", "ppg_teacher_method");
+    ExposeFloatProperty(parameter_handler, "lasso-penalty", "lasso_penalty");
+    ExposeFloatProperty(parameter_handler, "ridge-penalty", "ridge_penalty");
+    ExposeStringProperty(parameter_handler, "regression-bound", "regression_lower_bound");
     ExposeFloatProperty(parameter_handler, "discrimination-limit", "discrimination_limit");
     
     /*************************************
@@ -257,6 +269,10 @@ PYBIND11_MODULE(cstreed, m) {
     DefineSolver<Accuracy>(m, "Accuracy");
     DefineSolver<CostComplexAccuracy>(m, "CostComplexAccuracy");
     DefineSolver<F1Score>(m, "F1Score");
+    DefineSolver<Regression>(m, "Regression");
+    DefineSolver<CostComplexRegression>(m, "CostComplexRegression");
+    DefineSolver<SimpleLinearRegression>(m, "SimpleLinearRegression");
+    DefineSolver<PieceWiseLinearRegression>(m, "PieceWiseLinearRegression");
     DefineSolver<SurvivalAnalysis>(m, "Survival");
     DefineSolver<PrescriptivePolicy>(m, "PrescriptivePolicy");
     DefineSolver<GroupFairness>(m, "GroupFairness");
@@ -286,6 +302,10 @@ PYBIND11_MODULE(cstreed, m) {
         switch(get_task_type_code(task)) {
             case accuracy: solver = new Solver<Accuracy>(parameters, &rng); break;
             case cost_complex_accuracy: solver = new Solver<CostComplexAccuracy>(parameters, &rng); break;
+            case regression: solver = new Solver<Regression>(parameters, &rng); break;
+            case cost_complex_regression: solver = new Solver<CostComplexRegression>(parameters, &rng); break;
+            case spwl_regression: solver = new Solver<SimpleLinearRegression>(parameters, &rng); break;
+            case pwl_regression: solver = new Solver<PieceWiseLinearRegression>(parameters, &rng); break;
             case cost_sensitive: solver = new Solver<CostSensitive>(parameters, &rng); break;
             case instance_cost_sensitive: solver = new Solver<InstanceCostSensitive>(parameters, &rng); break;
             case f1score: solver = new Solver<F1Score>(parameters, &rng); break;
@@ -296,6 +316,8 @@ PYBIND11_MODULE(cstreed, m) {
         }
         return solver;
     }, py::keep_alive<0, 1>());
+
+
     
     /*************************************
            Extra Data
@@ -316,12 +338,21 @@ PYBIND11_MODULE(cstreed, m) {
         .def_readonly("predicted_outcome", &PPGData::yhat)
         .def_readonly("optimal_treatment", &PPGData::k_opt)
         .def_readonly("counterfactual_outcome", &PPGData::cf_y);
-       
+
     py::class_<InstanceCostSensitiveData>(m, "CostVector")
         .def(py::init<std::vector<double>&>())
         .def(py::init<>())
         .def_readonly("costs", &InstanceCostSensitiveData::costs);
 
+    py::class_<PieceWiseLinearRegExtraData>(m, "ContinuousFeatureData")
+        .def(py::init<const std::vector<double>&>())
+        .def_readonly("feature_data", &PieceWiseLinearRegExtraData::x);
+
+    py::class_<SimpleLinRegExtraData>(m, "SimpleContinuousFeatureData")
+        .def(py::init<const std::vector<double>&>())
+        .def_readonly("feature_data", &PieceWiseLinearRegExtraData::x);
+
+        
     /*************************************
            Label
      ************************************/
@@ -338,4 +369,17 @@ PYBIND11_MODULE(cstreed, m) {
         .def(py::init<const std::string&, int>())
         .def(py::init<const std::vector<std::vector<double>>&, const std::vector<FeatureCostSpecifier>&>());
     
+    /*************************************
+           Label
+     ************************************/
+
+    py::class_<LinearModel>(m, "LinearModel")
+        .def_readonly("coefficients", &LinearModel::b)
+        .def_readonly("intercept", &LinearModel::b0)
+        .def("__str__", &LinearModel::ToString)
+        .def("__call__", [](const LinearModel& model, const py::array_t<int, py::array::c_style>& _X, const PieceWiseLinearRegExtraData& extra_data) -> double {
+            const auto fv = NumpyRowToBoolVector(_X);
+            Instance<double, PieceWiseLinearRegExtraData> instance(0, fv, 0, extra_data);
+            return model.Predict(&instance);
+        });
 }

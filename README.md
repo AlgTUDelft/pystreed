@@ -9,7 +9,7 @@ For details on what tasks are separable and how the algoritm works, see our pape
 
 If you use STreeD, please cite our paper:
 
-* Van der Linden, Jacobus G. M., Mathijs M. de Weerdt, and Emir Demirović. "Necessary and Sufficient Conditions for Optimal Decision Trees using Dynamic Programming." _Advances in Neural Information Processing Systems_. 2023. [pdf](https://proceedings.neurips.cc/paper_files/paper/2023/hash/1d5fce9627e15c84db572a66e029b1fc-Abstract-Conference.html) 
+* Van der Linden, Jacobus G. M., Mathijs M. de Weerdt, and Emir Demirović. "Necessary and Sufficient Conditions for Optimal Decision Trees using Dynamic Programming." _Advances in Neural Information Processing Systems_. 2023. [pdf](https://proceedings.neurips.cc/paper_files/paper/2023/file/1d5fce9627e15c84db572a66e029b1fc-Paper-Conference.pdf) 
 
 ## Python usage
 
@@ -105,7 +105,7 @@ Currently, STreeD implements the following optimization tasks:
 
 * `accuracy`: Minimizes the misclassification score. 
 * `cost-complex-accuracy`: Minimizes the misclassification score plus the cost for adding a branching node by the parameter `cost_complexity`.
-* `f1-score`: Minimizes the F1-score.
+* `f1-score`: Maximizes the F1-score.
 
 See [examples/accuracy_example.py](examples/accuracy_example.py) for an example.
 
@@ -143,7 +143,7 @@ See [examples/group_fair_example.py](examples/group_fair_example.py) for an exam
 `STreeDPrescriptivePolicyGenerator` implements a policy generation solver. Counterfactual scores need to be provided. The current implementation allows for three different teacher methods, as specified by the `teacher_method` parameter:
 * `DM`: the _direct method_ or _Regress & Compare_ method. This teacher specifies for every treatment (label) what the expected outcome is.
 * `IPW`: the _inverse propensity weighting_ method. This teacher provides the propensity scores mu(x, k): the probability of treatment k happening for feature vector x.
-* `DR`: the _doubly robust_ method: a combination of the direct methodand the inverse propensity weighting method.
+* `DR`: the _doubly robust_ method: a combination of the direct method and the inverse propensity weighting method.
 
 The teacher data needs to be passed to the solver by initializing a `PPGData` object for every instance. The PPGData initializer expects the following parameters:
 * `historic_treatment : int` : the historic treatment label
@@ -158,8 +158,33 @@ Only the data which will be used by the teacher method needs to be specified, th
 
 See [examples/prescriptive_policy_example.py](examples/prescriptive_policy_example.py) for an example.
 
+### Regression
+
+`STreeDRegressor` implements two variants of regression, as specified by the optimization task parameter
+* `regression`: Miminimizes the _sum of squared errors_.
+* `cost-complex-regression`: Minimizes the _sum of squared errors_ plus the cost for adding a branching node by the parameter `cost_complexity`. For runtime improvement, custom lower bounds can be specified if `use_task_lower_bound=True`. The custom lower bound `regression_bound` can be set to either `"equivalent"` to use the equivalent-points bound or `"kmeans"` to use a k-means lower bound.
+
+See [examples/regression_example.py](examples/regression_example.py) for an example.
+
+If you use STreeD for _regression_, please cite our paper:
+
+* Van den Bos, M., Jacobus G. M. van der Linden, and Emir Demirović. "Piecewise Constant and Linear Regression Trees: An Optimal Dynamic Programming Approach." In _Proceedings of ICML-24_, 2024.
+
+### Piecewise Linear Regression
+`STreeDPiecewiseLinearRegressor` implements a solver for optimizing piecewise linear regression trees, with a linear elastic net regression predictor in every leaf node. The lasso and ridge penalization can be set with the `lasso_penalty` and `ridge_penalty` and parameters. The addition of a new branching node is penalized by the `cost_complexity` parameter. Alternatively, `STreeDPiecewiseLinearRegressor` can learn a simple linear regression model in every leaf by setting `simple = True`. The simple linear regression model is penalized only with the ridge penalization.
+
+`STreeDPiecewiseLinearRegressor` only uses the continuous features for fitting the linear lasso regression model in every leaf node. These continuous features can be automatically inferred from the data or explicitly specified using the `continuous_columns` parameter of the `fit` method.
+
+To prevent fitting linear models on too little data, `STreeDPiecewiseLinearRegressor` by default sets the `min_leaf_node_size` parameter to at least 5 times the number of continuous features or to at least 5 when fitting a simple linear regression model.
+
+See [examples/piecewise_linear_regression_example.py](examples/piecewise_linear_regression_example.py) for an example.
+
+If you use STreeD for _piecewise linear regression_, please cite our paper:
+
+* Van den Bos, M., Jacobus G. M. van der Linden, and Emir Demirović. "Piecewise Constant and Linear Regression Trees: An Optimal Dynamic Programming Approach." In _Proceedings of ICML-24_, 2024.
+
 ### Survival analysis
-`STreeDSurvivalAnalysis` implements an optimal survival tree method, by optimizing the proportional hazard function of LeBlanc and Crowly, "Relative Risk for Censored Survival Data," _Biometrics_ 48.2 (1992): 411-425. Each leaf node predicts a risk factor $\theta$ which is used to shift the base hazard model $\hat{\Lambda}(t)$.  The Kaplan-Meier estimator is used as a stepwise survival function $\hat{S}(t) = e^{-\theta \hat{\Lambda}(t)}$.
+`STreeDSurvivalAnalysis` implements an optimal survival tree method, by optimizing the proportional hazard function of LeBlanc and Crowly, "Relative Risk for Censored Survival Data," _Biometrics_ 48.2 (1992): 411-425. Each leaf node predicts a risk factor $\theta$ which is used to shift the base hazard model $\hat{\Lambda}(t)$.  The Nelson-Aalen estimator is used as a stepwise survival function $\hat{S}(t) = e^{-\theta \hat{\Lambda}(t)}$.
 
 Instead of a label, the input data expects a two-dimensional array with for each instance 1) a binary censoring indicator and 2) a time-of-event (death or censoring).
 
@@ -167,7 +192,7 @@ See [examples/survival_analysis_example.py](examples/survival_analysis_example.p
 
 If you use STreeD for _survival analysis_, please cite our paper:
 
-* Huisman, T., Jacobus G. M. van der Linden, and Emir Demirović. "Optimal Survival Trees: A Dynamic Programming Approach." _Proceedings of AAAI-24_ (Accepted, not published). 2024. 
+* Huisman, T., Jacobus G. M. van der Linden, and Emir Demirović. "Optimal Survival Trees: A Dynamic Programming Approach." _Proceedings of AAAI-24_. 2024. [pdf](https://arxiv.org/pdf/2401.04489.pdf)
 
 ## Parameters
 STreeD can be configured by the following parameters:
