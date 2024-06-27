@@ -5,8 +5,9 @@ namespace STreeD {
 
 	class CostComplexAccuracy : public Classification {
 	public:
-		using SolType = int;
-		using SolD2Type = int;
+		using SolType = double;
+		using SolD2Type = double;
+		using BranchSolD2Type = double;		// The data type of the branching costs in the terminal solver
 		using TestSolType = int;
 
 		static const bool total_order = true;
@@ -22,27 +23,23 @@ namespace STreeD {
 			: Classification(parameters), cost_complexity_parameter(parameters.GetFloatParameter("cost-complexity")) {}
 
 		inline void UpdateParameters(const ParameterHandler& parameters) {
-			cost_complexity_parameter = parameters.GetFloatParameter("cost-complexity");
+			cost_complexity_parameter = std::max(0.0, parameters.GetFloatParameter("cost-complexity"));
 		}
 
-		int GetLeafCosts(const ADataView& data, const BranchContext& context, int label) const;
+		double GetLeafCosts(const ADataView& data, const BranchContext& context, int label) const;
 		inline int GetTestLeafCosts(const ADataView& data, const BranchContext& context, int label) const {
 			return int(GetLeafCosts(data, context, label));
 		}
 
-		int GetBranchingCosts(const ADataView& data, const BranchContext& context, int feature) const { return int(cost_complexity_parameter * train_summary.size); }
+		double GetBranchingCosts(const ADataView& data, const BranchContext& context, int feature) const { return cost_complexity_parameter * train_summary.size; }
 		int GetTestBranchingCosts(const ADataView& data, const BranchContext& context, int feature) const { return 0; }
-		int GetBranchingCosts(const BranchContext& context, int feature) const { 
-			double val = cost_complexity_parameter * train_summary.size;
-			int int_val = int(val);
-			runtime_assert(int_val >= -1e-6);
-			return int_val; }
-		int ComputeD2BranchingCosts(const int& d2costs, int count) const { return d2costs; }
+		double GetBranchingCosts(const BranchContext& context, int feature) const {  return cost_complexity_parameter * train_summary.size; }
+		double ComputeD2BranchingCosts(const double& d2costs, int count) const { return d2costs; }
 
-		inline void GetInstanceLeafD2Costs(const AInstance* instance, int org_label, int label, int& costs, int multiplier) const { costs = multiplier * ((org_label == label) ? 0 : 1); }
-		void ComputeD2Costs(const int& d2costs, int count, int& costs) const { costs = d2costs; }
-		inline bool IsD2ZeroCost(const int d2costs) const { return d2costs == 0; }
-		inline int GetWorstPerLabel(int label) const { return 1; }
+		inline void GetInstanceLeafD2Costs(const AInstance* instance, int org_label, int label, double& costs, int multiplier) const { costs = multiplier * ((org_label == label) ? 0 : 1); }
+		void ComputeD2Costs(const double& d2costs, int count, double& costs) const { costs = d2costs; }
+		inline bool IsD2ZeroCost(const double d2costs) const { return std::abs(d2costs) <= 1e-6; }
+		inline double GetWorstPerLabel(int label) const { return 1; }
 
 		inline double ComputeTrainTestScore(int test_value) const { return ((double)(train_summary.size - test_value)) / ((double)train_summary.size); }
 		inline double ComputeTestTestScore(int test_value) const { return ((double)(test_summary.size - test_value)) / ((double)test_summary.size); }

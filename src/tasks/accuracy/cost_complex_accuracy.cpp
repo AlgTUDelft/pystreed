@@ -2,8 +2,8 @@
 
 namespace STreeD {
 
-	int CostComplexAccuracy::GetLeafCosts(const ADataView& data, const BranchContext& context, int label) const { // Replace by custom function later
-		int error = 0;
+	double CostComplexAccuracy::GetLeafCosts(const ADataView& data, const BranchContext& context, int label) const { // Replace by custom function later
+		double error = 0;
 		for (int k = 0; k < data.NumLabels(); k++) {
 			if (k == label) continue;
 			error += data.NumInstancesForLabel(k);
