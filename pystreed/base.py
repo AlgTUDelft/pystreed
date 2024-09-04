@@ -333,7 +333,7 @@ class BaseSTreeDSolver(BaseEstimator):
         Returns the number of branching nodes in the fitted tree
         """
         check_is_fitted(self, "fit_result")
-        return self.fit_result.tree_nodes()
+        return self.fit_result.tree_nodes() + 1
     
     def get_depth(self):
         """
