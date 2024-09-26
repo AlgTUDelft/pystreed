@@ -107,8 +107,8 @@ namespace STreeD {
 		using Context = typename OT::ContextType;		// The class type of the context (default = BranchContext)
 		using LabelType = typename OT::LabelType;		// The class of the (input) label, e.g., double for regression, int for classification
 		using SolLabelType = typename OT::SolLabelType; // The class of the leaf label, e.g., int for classification, or linear model for piecewise linear regression
-		static constexpr bool sparse_objective = constexpr(OT::total_order && OT::has_branching_costs
-			&& OT::constant_branching_costs && (std::is_same<typename OT::SolType, double>::value || std::is_same<typename OT::SolType, int>::value));
+		static constexpr bool sparse_objective = OT::total_order && OT::has_branching_costs
+			&& OT::constant_branching_costs && (std::is_same<typename OT::SolType, double>::value || std::is_same<typename OT::SolType, int>::value);
 
 		Solver(ParameterHandler& parameters, std::default_random_engine* rng);
 		~Solver();
