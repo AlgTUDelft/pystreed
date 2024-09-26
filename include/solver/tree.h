@@ -149,7 +149,7 @@ namespace STreeD {
 
 		void BuildTreeString(std::stringstream& ss) const {
 			if (IsLabelNode()) {
-				ss << "[" << OT::SolToString(label) << "]";
+				ss << "[" << OT::LabelToString(label) << "]";
 			} else {
 				ss << "[" << feature << ",";
 				left_child->BuildTreeString(ss);

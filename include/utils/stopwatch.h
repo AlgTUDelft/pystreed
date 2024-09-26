@@ -14,6 +14,7 @@ namespace STreeD {
 		void Initialise(double time_limit_in_seconds) {
 			starting_time = time(nullptr);
 			this->time_limit_in_seconds = time_limit_in_seconds;
+			this->enabled = true;
 		}
 
 		double TimeElapsedInSeconds() const {
@@ -26,13 +27,16 @@ namespace STreeD {
 
 
 		bool IsWithinTimeLimit() const {
-			return TimeElapsedInSeconds() < time_limit_in_seconds;
+			return !enabled || TimeElapsedInSeconds() < time_limit_in_seconds;
 		}
 
+		void Enable() { enabled = true; }
+		void Disable() { enabled = false; }
 
 	private:
 		time_t starting_time;
 		double time_limit_in_seconds;
+		bool enabled{ true };
 	};
 
 }

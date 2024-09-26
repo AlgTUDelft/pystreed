@@ -6,7 +6,7 @@ namespace STreeD {
 	template <class OT>
 	TerminalSolver<OT>::TerminalSolver(Solver<OT>* solver) :
 		task(solver->GetTask()), num_features(solver->NumFeatures()), 
-		cost_calculator(solver->GetTask(), solver->NumFeatures(), solver->NumLabels()),
+		cost_calculator(solver->GetTask(), solver->NumFeatures(), solver->NumLabels(), solver->GetFeatureOrder()),
 		children_info(solver->NumFeatures()), solver_parameters(&(solver->GetSolverParameters())),
 		temp_branch_node(INT32_MAX, OT::worst, 0, 0),
 		temp_leaf_node(OT::worst_label, OT::worst),
@@ -33,26 +33,47 @@ namespace STreeD {
 		if (num_nodes == 1) {
 			return results;
 		}
+		const auto zero_sol = InitializeSol<OT>(true);
+		if (SolutionsEqual<OT>(zero_sol, results.one_node_solutions)) {
+			AddSols<OT>(results.two_nodes_solutions, results.one_node_solutions);
+			AddSols<OT>(results.three_nodes_solutions, results.two_nodes_solutions);
+			return results;
+		}
 
 		typename TerminalSolver<OT>::SolType left_sol;
 		typename TerminalSolver<OT>::SolType right_sol;
 		int  total0, total1;
 		IndexInfo index;
 		Counts counts;
+		typename TerminalSolver<OT>::SolType branch_left_costs, branch_right_costs, branch_left_costs_rev, branch_right_costs_rev;
+		
+		auto& branch = context.GetBranch();
+		std::vector<int> features; features.reserve(num_features);
 		for (int f1 = 0; f1 < num_features; f1++) {
 			if (!task->MayBranchOnFeature(f1)) continue;
-			total0 = cost_calculator.GetCount00(f1, f1);
+			if (branch.HasBranchedOnFeature(f1)) continue;
 			total1 = cost_calculator.GetCount11(f1, f1);
+			total0 = cost_calculator.GetTotalCount() - total1;
+			runtime_assert(total0 == cost_calculator.GetCount00(f1, f1));
+			
 			if (total0 < solver_parameters->minimum_leaf_node_size || total1 < solver_parameters->minimum_leaf_node_size) continue;
+			if (total0 < 2 * solver_parameters->minimum_leaf_node_size && total1 < 2 * solver_parameters->minimum_leaf_node_size) continue;
+			features.push_back(f1);
+		}
+		const int _num_features = int(features.size());
 
-			for (int f2 = f1 + 1; f2 < num_features; f2++) {
-				if (!task->MayBranchOnFeature(f2)) continue;
-				if (f1 == f2) continue;
+		
 
+
+		for (int _f1 = 0; _f1 < _num_features; _f1++) {
+			int f1 = features[_f1];
+			if (SolutionsEqual<OT>(zero_sol, results.three_nodes_solutions)) break;
+
+			for (int _f2 = _f1 + 1; _f2 < _num_features; _f2++) {
+				int f2 = features[_f2];
+				
 				cost_calculator.GetIndexInfo(f1, f2, index);
 				cost_calculator.GetCounts(counts, index);
-				runtime_assert(total0 == counts.count00 + counts.count01);
-				runtime_assert(total1 == counts.count10 + counts.count11);
 
 				if ((counts.count00 < solver_parameters->minimum_leaf_node_size || counts.count01 < solver_parameters->minimum_leaf_node_size)
 					&& (counts.count10 < solver_parameters->minimum_leaf_node_size || counts.count11 < solver_parameters->minimum_leaf_node_size)
@@ -61,51 +82,64 @@ namespace STreeD {
 					continue;
 				}
 
-				const auto branch_left_costs = cost_calculator.GetBranchingCosts0(counts.count00  + counts.count01, f1, f2);
-				const auto branch_right_costs = cost_calculator.GetBranchingCosts1(counts.count10 + counts.count11 , f1, f2);
-
-				const auto branch_left_costs_rev = cost_calculator.GetBranchingCosts0(counts.count00  + counts.count10 , f2, f1);
-				const auto branch_right_costs_rev = cost_calculator.GetBranchingCosts1(counts.count01 + counts.count11, f2, f1);
-
-
+				if constexpr (OT::has_branching_costs) {
+					branch_left_costs = cost_calculator.GetBranchingCosts0(counts.count00 + counts.count01, f1, f2);
+					branch_right_costs = cost_calculator.GetBranchingCosts1(counts.count10 + counts.count11, f1, f2);
+					branch_left_costs_rev = cost_calculator.GetBranchingCosts0(counts.count00 + counts.count10, f2, f1);
+					branch_right_costs_rev = cost_calculator.GetBranchingCosts1(counts.count01 + counts.count11, f2, f1);
+				}
 
 				for (int label = 0; label < num_labels; label++) {
 					cost_calculator.CalcSols(counts, sols[label], label, index);
 				}
+				auto& child_info_f1 = children_info[f1];
+				auto& child_info_f2 = children_info[f2];
 
 				// Find best left child (first=0)
 				if (counts.count00 >= solver_parameters->minimum_leaf_node_size && counts.count01 >= solver_parameters->minimum_leaf_node_size) {
+					temp_branch_node.feature = f2;
 					for (auto& la : label_assignments) {
 						OT::Add(sols[la.left_label].sol00, sols[la.right_label].sol01, left_sol);
-						OT::Add(left_sol, branch_left_costs, left_sol);
-						UpdateBestLeftChild(f1, f2, left_sol);
+						if constexpr (OT::has_branching_costs) {
+							OT::Add(left_sol, branch_left_costs, left_sol);
+						}
+						UpdateBestLeftChild(child_info_f1, left_sol);
 					}
 				}
 				
 				// Find best right child (first=1)
 				if (counts.count10 >= solver_parameters->minimum_leaf_node_size && counts.count11 >= solver_parameters->minimum_leaf_node_size) {
+					temp_branch_node.feature = f2;
 					for (auto& la : label_assignments) {
 						OT::Add(sols[la.left_label].sol10, sols[la.right_label].sol11, right_sol);
-						OT::Add(right_sol, branch_right_costs, right_sol);
-						UpdateBestRightChild(f1, f2, right_sol);
+						if constexpr (OT::has_branching_costs) {
+							OT::Add(right_sol, branch_right_costs, right_sol);
+						}
+						UpdateBestRightChild(child_info_f1, right_sol);
 					}
 				}
 
 				// Find best left child (rev, first=0)
 				if (counts.count00 >= solver_parameters->minimum_leaf_node_size && counts.count10 >= solver_parameters->minimum_leaf_node_size) {
+					temp_branch_node.feature = f1;
 					for (auto& la : label_assignments) {
 						OT::Add(sols[la.left_label].sol00, sols[la.right_label].sol10, left_sol);
-						OT::Add(left_sol, branch_left_costs_rev, left_sol);
-						UpdateBestLeftChild(f2, f1, left_sol);
+						if constexpr (OT::has_branching_costs) {
+							OT::Add(left_sol, branch_left_costs_rev, left_sol);
+						}
+						UpdateBestLeftChild(child_info_f2, left_sol);
 					}
 				}
 
 				// Find best right child (rev, first=1)
 				if (counts.count01 >= solver_parameters->minimum_leaf_node_size && counts.count11 >= solver_parameters->minimum_leaf_node_size) {
+					temp_branch_node.feature = f1;
 					for (auto& la : label_assignments) {
 						OT::Add(sols[la.left_label].sol01, sols[la.right_label].sol11, right_sol);
-						OT::Add(right_sol, branch_right_costs_rev, right_sol);
-						UpdateBestRightChild(f2, f1, right_sol);
+						if constexpr (OT::has_branching_costs) {
+							OT::Add(right_sol, branch_right_costs_rev, right_sol);
+						}
+						UpdateBestRightChild(child_info_f2, right_sol);
 					}
 				}
 
@@ -132,6 +166,7 @@ namespace STreeD {
 		{
 			typename OT::SolLabelType out_label;
 			for (int label = 0; label < data.NumLabels(); label++) {
+				//node = Node<OT>(label, task->GetLeafCosts(data, context, label));
 				cost_calculator.CalcLeafSol(merged_sol, label, out_label);
 				node.Set(INT32_MAX, out_label, merged_sol, 0, 0);
 
@@ -184,24 +219,24 @@ namespace STreeD {
 	}
 
 	template <class OT>
-	void TerminalSolver<OT>::UpdateBestLeftChild(int root_feature, int feature, const SolType& solution) {
-		auto& child_info = children_info[root_feature];
+	void TerminalSolver<OT>::UpdateBestLeftChild(ChildrenInformation& child_info, const SolType& solution) {
+		//auto& child_info = children_info[root_feature];
 		const auto & context = child_info.left_context;
-		temp_branch_node.feature = feature;
+		//temp_branch_node.feature = feature;
 		temp_branch_node.solution = solution;
-		if (OT::has_constraint && !SatisfiesConstraint(temp_branch_node, context)) return;
-		if (OT::terminal_filter && LeftStrictDominatesRightSol<OT>(UB, temp_branch_node)) return;
+		if constexpr (OT::has_constraint) { if (!SatisfiesConstraint(temp_branch_node, context)) return; }
+		if constexpr (OT::terminal_filter) { if (LeftStrictDominatesRightSol<OT>(UB, temp_branch_node)) return; }
 		AddSol<OT>(child_info.left_child_assignments, temp_branch_node);
 	}
 
 	template <class OT>
-	void TerminalSolver<OT>::UpdateBestRightChild(int root_feature, int feature, const SolType& solution) {
-		auto& child_info = children_info[root_feature];
+	void TerminalSolver<OT>::UpdateBestRightChild(ChildrenInformation& child_info, const SolType& solution) {
+		//auto& child_info = children_info[root_feature];
 		const auto& context = child_info.right_context;
-		temp_branch_node.feature = feature;
+		//temp_branch_node.feature = feature;
 		temp_branch_node.solution = solution;
-		if (OT::has_constraint && !SatisfiesConstraint(temp_branch_node, context)) return;
-		if (OT::terminal_filter && LeftStrictDominatesRightSol<OT>(UB, temp_branch_node)) return;
+		if constexpr (OT::has_constraint) { if (!SatisfiesConstraint(temp_branch_node, context)) return; }
+		if constexpr (OT::terminal_filter) { if (LeftStrictDominatesRightSol<OT>(UB, temp_branch_node)) return; }
 		AddSol<OT>(child_info.right_child_assignments, temp_branch_node);
 	}
 

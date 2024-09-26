@@ -21,12 +21,19 @@ namespace STreeD {
 			});
 
 			int id = 0;
+			int unique_feature_vector_id = -1;
 			double y = 0;
 			double yy = 0;
+			auto prev = instances[0];
 			for (auto i : instances) {
+				auto reg_i = static_cast<Instance<double, RegExtraData>*>(i);
 				double label = GetInstanceLabel<double>(i);
 				y += label;
 				yy += label * label;
+				if (id == 0 || !prev->GetFeatures().HasEqualFeatures(i->GetFeatures())) {
+					unique_feature_vector_id++;
+				}
+				reg_i->GetMutableExtraData().unique_feature_vector_id = unique_feature_vector_id;
 				i->SetID(id++);
 			}
 
@@ -99,7 +106,9 @@ namespace STreeD {
 			
 
 			if (//std::abs(GetInstanceLabel<double>(prev) - label) > 1e-3 ||
-				  !prev->GetFeatures().HasEqualFeatures(current->GetFeatures())) {
+				  //!prev->GetFeatures().HasEqualFeatures(current->GetFeatures())) {
+				  !(static_cast<const Instance<double, RegExtraData>*>(prev)->GetExtraData().unique_feature_vector_id ==
+					  static_cast<const Instance<double, RegExtraData>*>(current)->GetExtraData().unique_feature_vector_id)) {
 				// If different
 				if (n > w) {
 					auto copy_instance = new Instance<double, RegExtraData>(*static_cast<const Instance<double, RegExtraData>*>(instances[ix_first]));
@@ -262,7 +271,10 @@ namespace STreeD {
 		const int size = int(instances.size());
 		for (int i = 1; i < size; i++) {
 			const auto& current = instances[i];
-			if (!prev->GetFeatures().HasEqualFeatures(current->GetFeatures())) {
+			
+			// If the feature vectors are unequal
+			if (!(static_cast<const Instance<double, RegExtraData>*>(prev)->GetExtraData().unique_feature_vector_id ==
+				static_cast<const Instance<double, RegExtraData>*>(current)->GetExtraData().unique_feature_vector_id)) {
 
 				lb.solution += ysq - (y * y / n);
 

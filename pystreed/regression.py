@@ -68,7 +68,7 @@ class STreeDRegressor(BaseSTreeDSolver):
         self._extra_permitted_params = ["regression_lower_bound"]
         if not optimization_task in ["regression", "cost-complex-regression"]:
             raise ValueError(f"Invalid value for optimization_task: {optimization_task}")
-        BaseSTreeDSolver.__init__(self, "regression",
+        BaseSTreeDSolver.__init__(self, optimization_task,
             max_depth=max_depth,
             max_num_nodes=max_num_nodes,
             min_leaf_node_size=min_leaf_node_size,

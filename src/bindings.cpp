@@ -241,6 +241,7 @@ PYBIND11_MODULE(cstreed, m) {
     ExposeBooleanProperty(parameter_handler, "hyper-tune", "hyper_tune");
     ExposeIntegerProperty(parameter_handler, "max-depth", "max_depth");
     ExposeIntegerProperty(parameter_handler, "max-num-nodes", "max_num_nodes");
+    ExposeBooleanProperty(parameter_handler, "all-trees", "all_trees");
     ExposeIntegerProperty(parameter_handler, "random-seed", "random_seed");
     ExposeFloatProperty(parameter_handler, "time", "time_limit");
     ExposeFloatProperty(parameter_handler, "cost-complexity", "cost_complexity");

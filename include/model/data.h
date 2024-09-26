@@ -36,9 +36,24 @@ namespace STreeD {
 		
 		// Get the j-th feature that is satisfied in this instance
 		inline int GetJthPresentFeature(int j) const { return features.GetJthPresentFeature(j); }
-		
+
+		// Get the j-th feature pair index of two features that are both satisfied in this instance
+		inline int GetJthPresentFeaturePairIndex(int j) const { return features.GetJthPresentFeaturePairIndex(j); }
+
+		// Get the number of feature pair indices that are both satisfied in this instance
+		inline int NumPresentFeaturePairs() const { return features.NumPresentFeaturePairs(); }
+
+		// Get a list of feature pair indices of two features that are both satisfied in this instance
+		inline const std::vector<int>& GetPresentFeaturePairIndices() const { return features.GetPresentFeaturePairIndices(); }
+
 		// Flip the value of feature f. Add or remove this feature from the present-feature list
 		inline void FlipFeature(int f) { features.FlipFeature(f); }
+
+		// Disable this feature by setting it to zero. Remove it from the present-feature list
+		inline void DisableFeature(int f) { features.DisableFeature(f); }
+
+		// Compute the feature pair indices of the feature pairs that are both satisfied in this instance
+		inline void ComputeFeaturePairIndices() { features.ComputeFeaturePairIndices(); }
 		
 		// Get the weigth of this instance (default = 1)
 		// Note: only some optimization tasks support the use of weight
@@ -190,7 +205,9 @@ namespace STreeD {
 		inline bool IsHashSet() const { return bitset_view.IsHashSet(); }
 		inline void  SetHash(long long hash) { bitset_view.SetHash(hash); }
 
+		inline void Initialize(const AData* data, int num_labels);
 		inline void Clear() { instances.clear(); instance_weights.clear(); size = 0; bitset_view = ADataViewBitSet(); }
+		void ResetReserve(const ADataView& other);
 
 		// Split the data on feature
 		void SplitData(int feature, ADataView& left, ADataView& right) const;
@@ -235,8 +252,8 @@ namespace std {
 	template <>
 	struct hash<STreeD::ADataViewBitSet> {
 
-		//adapted from https://stackoverflow.com/questions/20511347/a-good-hash-function-for-a-vector
 		size_t operator()(const STreeD::ADataViewBitSet& view) const {
+			if (view.IsHashSet()) return view.GetHash();
 			return hash<STreeD::DynamicBitSet>()(view.bitset);
 		}
 

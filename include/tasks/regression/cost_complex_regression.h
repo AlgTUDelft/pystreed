@@ -9,6 +9,7 @@ namespace STreeD {
 
 	struct RegExtraData {
 		double ysq{ 0 };
+		int unique_feature_vector_id{ 0 };
 
 		static RegExtraData ReadData(std::istringstream& iss, int num_labels) { return {}; }
 	};

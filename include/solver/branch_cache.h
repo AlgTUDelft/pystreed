@@ -37,7 +37,7 @@ namespace STreeD {
 	private:
 		
 		//cache[i] is a hash table with branches of size i		
-		std::vector<std::unordered_map<Branch, std::vector<CacheEntry<OT>>, BranchHashFunction, BranchEquality >> cache; 
+		std::vector<std::unordered_map<Branch, CacheEntryVector<OT>, BranchHashFunction, BranchEquality >> cache; 
 
 		SolContainer empty_sol, empty_lb;
 	};

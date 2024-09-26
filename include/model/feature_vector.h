@@ -17,10 +17,15 @@ namespace STreeD {
 		inline int GetJthPresentFeature(const int j) const { runtime_assert(j < num_present_features); return present_features_[j]; }
 		inline int NumPresentFeatures() const { return int(num_present_features); }
 		inline int NumTotalFeatures() const { return num_features; }
+		inline int NumPresentFeaturePairs() const { return int(present_feature_pair_indices_.size()); }
 		inline int GetID() const { return id; }
 		inline void SetID(int id) { this->id = id; }
 		double Sparsity() const;
+		inline int GetJthPresentFeaturePairIndex(const int j) const { return present_feature_pair_indices_[j]; }
+		inline const std::vector<int>& GetPresentFeaturePairIndices() const { return present_feature_pair_indices_; }
 		void FlipFeature(int f);
+		void DisableFeature(int f);
+		void ComputeFeaturePairIndices();
 
 		friend std::ostream& operator<<(std::ostream& os, const FeatureVector& fv);
 		
@@ -55,6 +60,7 @@ namespace STreeD {
 		int num_present_features;
 		bool* is_feature_present_; //[i] indicates if the feature is true or false, i.e., if it is present in present_Features.
 		int* present_features_;
+		std::vector<int> present_feature_pair_indices_;
 
 	};
 }

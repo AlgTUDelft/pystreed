@@ -13,6 +13,7 @@ namespace STreeD {
 		DifferenceMetrics(int num_labels) :num_removals(num_labels, 0), total_difference(0) {}
 		std::vector<int> num_removals;
 		int total_difference;
+		int GetNumRemovals() const;
 	};
 
 	class BinaryDataDifferenceComputer {

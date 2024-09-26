@@ -84,6 +84,7 @@ void RunAccuracyTest(const AccuracyTestSetup& test, const SolverSetup& solver_se
 	try {
 		auto solver = new STreeD::Solver<Accuracy>(parameters, &rng);
 		FileReader::ReadData<Accuracy>(parameters, data, train_data, test_data, &rng);
+		solver->PreprocessData(data, true);
 		result = solver->Solve(train_data);
 		delete solver;
 	} catch (std::exception&) {
@@ -124,6 +125,7 @@ void RunF1ScoreTest(const F1ScoreTestSetup& test, const SolverSetup& solver_setu
 	try {
 		auto solver = new STreeD::Solver<F1Score>(parameters, &rng);
 		FileReader::ReadData<F1Score>(parameters, data, train_data, test_data, &rng);
+		solver->PreprocessData(data, true);
 		result = solver->Solve(train_data);
 		delete solver;
 	} catch (std::exception&) {
@@ -179,6 +181,7 @@ void RunRegressionTest(const RegressionTestSetup& test, const SolverSetup& solve
 	try {
 		auto solver = new STreeD::Solver<Regression>(parameters, &rng);
 		FileReader::ReadData<Regression>(parameters, data, train_data, test_data, &rng);
+		solver->PreprocessData(data, true);
 		result = solver->Solve(train_data);
 		delete solver;
 	} catch (std::exception&) {
@@ -218,7 +221,7 @@ void RunSurvivalAnalysisTest(const SurvivalAnalysisSetup& test, const SolverSetu
 	FileReader::ReadData<SurvivalAnalysis>(parameters, data, train_data, test_data, &rng);
 	try {
 		auto solver = new STreeD::Solver<SurvivalAnalysis>(parameters, &rng);
-
+		solver->PreprocessData(data, true);
 		result = solver->Solve(train_data);
 		delete solver;
 	} catch (std::exception&) {

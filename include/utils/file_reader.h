@@ -27,7 +27,7 @@ namespace STreeD {
 		*/
 		template<class LT, class ET>
 		static void ReadFromFile(AData& data, std::string filename, int num_extra_cols,
-			int num_instances, int initial_id, int duplicate_instances_factor);
+			int num_instances, int max_num_features, int initial_id, int duplicate_instances_factor);
 
 	};
 }

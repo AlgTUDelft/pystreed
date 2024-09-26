@@ -62,4 +62,19 @@ namespace STreeD {
 		int depth;
 		int num_nodes;
 	};
+
+	template <class OT>
+	struct CacheEntryVector {
+		using SolType = typename OT::SolType;
+		using SolContainer = typename std::conditional<OT::total_order, Node<OT>, std::shared_ptr<Container<OT>>>::type;
+
+		CacheEntryVector() = default;
+		CacheEntryVector(int size, const CacheEntry<OT>& _default) : entries(size, _default) {}
+
+		void push_back(const CacheEntry<OT>& entry) { entries.push_back(entry); }
+		CacheEntry<OT>& operator[](size_t idx) { return entries[idx]; }
+
+		bool exhausted{ false };
+		std::vector<CacheEntry<OT>> entries;
+	};
 }

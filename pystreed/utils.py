@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 def _color_brew(n):
     """Generate n colors with equally spaced hues.
@@ -41,3 +42,14 @@ def _color_brew(n):
         color_list.append(rgb)
 
     return color_list
+
+def _dynamic_float_formatter(t):
+    if int(t) == t:
+        return str(t)
+    if t % 1 == 0:
+        return str(t)
+    if math.log10(abs(t)) >= 6 or math.log10(abs(t)) <= -4:
+        return f"{t:.2e}"
+    if math.log10(abs(t)) >= 2:
+        return f"{t:.2f}".rstrip('0').rstrip('.')
+    return f"{t:f}".rstrip('0').rstrip('.')

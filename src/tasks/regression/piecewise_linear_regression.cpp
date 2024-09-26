@@ -132,7 +132,7 @@ namespace STreeD {
 		if (tree->IsLabelNode()) {
 			// reverse normalize the tree
 			auto& model = tree->label;
-			int CF = g_cf_mu.size();
+			int CF = int(g_cf_mu.size());
 			std::vector<double> b(CF);
 			for (int j = 0; j < CF; j++) {
 				b[j] = model.b[j] / g_cf_std[j];

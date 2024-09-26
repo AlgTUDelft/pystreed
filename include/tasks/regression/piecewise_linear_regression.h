@@ -47,6 +47,7 @@ namespace STreeD {
 
 		static const bool total_order = true;	// Solutions are totally ordered by SSE
 		static const bool custom_leaf = true;	// This OT defines its own leaf node optimization function
+		static const bool expensive_leaf = true; // This OT has an expensive leaf node optimization function
 		static const bool custom_lower_bound = false; // This OT does not define a custom LB
 		static const bool preprocess_data = true;	  // This OT preprocesses the data (normalization)
 		static const bool preprocess_train_test_data = true;	// This OT preprocesses the train and test data
@@ -108,7 +109,8 @@ namespace STreeD {
 
 		inline static bool CompareScore(double score1, double score2) { return score1 < score2; } // return true if score1 is better than score2
 
-		inline static std::string SolToString(const LinearModel& label) { return label.ToString(); }
+		inline static std::string LabelToString(const LinearModel& label) { return label.ToString(); }
+		inline static std::string SolToString(double sol_val) { return std::to_string(sol_val); }
 
 		static TuneRunConfiguration GetTuneRunConfiguration(const ParameterHandler& default_config, const ADataView& data, int phase);
 

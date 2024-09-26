@@ -229,7 +229,6 @@ namespace STreeD {
 		(
 			"use-branch-caching",
 			"Use branch caching to store computed subtrees.",
-			//\"Dataset\" is more powerful than \"branch\" but may required more computational time. Need to be determined experimentally. \"Closure\" is experimental and typically slower than other options.",
 			false, //default value
 			"Algorithmic Parameters"
 		);
@@ -287,7 +286,7 @@ namespace STreeD {
 		(
 			"cost-complexity",
 			"The cost for adding an extra node to the tree. 0.01 means one extra node is only jusitified if it results in at least one percent better training accuracy score.",
-			0.01, // default value
+			0.00, // default value
 			"Objective Parameters",
 			0.0, //min value
 			1.0 //max value

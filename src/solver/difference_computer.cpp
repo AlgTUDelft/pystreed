@@ -6,6 +6,15 @@ https://bitbucket.org/EmirD/murtree
 #include "solver/difference_computer.h"
 
 namespace STreeD {
+
+	int DifferenceMetrics::GetNumRemovals() const {
+		int _num_removals = 0;
+		for (size_t label = 0; label < num_removals.size(); label++) {
+			_num_removals += num_removals[label];
+		}
+		return _num_removals;
+	}
+
 	DifferenceMetrics BinaryDataDifferenceComputer::ComputeDifferenceMetrics(const ADataView& data_old, const ADataView& data_new) {
 		DifferenceMetrics metrics(data_new.NumLabels());
 		

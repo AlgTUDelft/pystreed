@@ -47,6 +47,7 @@ namespace STreeD {
 		static const bool has_branching_costs = true;
 		static const bool element_branching_costs = false;
 		static const bool terminal_compute_context = true;
+		static const bool terminal_zero_costs_true_label = false; // True iff the costs of assigning the true label in the terminal is zero
 		static const int worst = INT32_MAX;
 		static const int best = 0;
 

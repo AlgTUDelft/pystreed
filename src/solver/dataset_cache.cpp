@@ -23,7 +23,8 @@ namespace STreeD {
 
 		if (iter == hashmap.end()) { return false; }
 
-		for (CacheEntry<OT>& entry : iter->second) {
+		auto& entries = iter->second.entries;
+		for (CacheEntry<OT>& entry : entries) {
 			if (entry.GetNodeBudget() == num_nodes && entry.GetDepthBudget() == depth) { 
 				return entry.IsOptimal();
 			}
@@ -46,14 +47,13 @@ namespace STreeD {
 
 		//if the branch has never been seen before, create a new entry for it
 		if (iter_vector_entry == hashmap.end()) {
-			std::vector<CacheEntry<OT>> vector_entry;
+			CacheEntryVector<OT> vector_entry;
 			for (int node_budget = sol_num_nodes; node_budget <= num_nodes; node_budget++) {
 				for (int depth_budget = optimal_node_depth; depth_budget <= std::min(depth, node_budget); depth_budget++) {
 					vector_entry.push_back({ depth_budget, node_budget, optimal_solutions });
 				}
 			}
-			if (!data.IsHashSet()) { data.SetHash(std::hash<ADataViewBitSet>()(bitsetview)); }
-			cache[data.Size()].insert(std::pair<ADataViewBitSet, std::vector<CacheEntry<OT>> >(bitsetview, vector_entry));
+			cache[data.Size()].insert(std::pair<ADataViewBitSet, CacheEntryVector<OT> >(bitsetview, vector_entry));
 			InvalidateStoredIterators(bitsetview);
 		} else {
 			//this sol is valid for size=[opt.NumNodes, num_nodes] and depths d=min(size, depth)
@@ -61,7 +61,8 @@ namespace STreeD {
 			//now we need to see if other node budgets have been seen before. 
 			//For each budget that has been seen, update it;
 			std::vector<std::vector<bool> > budget_seen(size_t(num_nodes) + 1, std::vector<bool>(depth + 1, false));
-			for (CacheEntry<OT>& entry : iter_vector_entry->second) {
+			auto& entries = iter_vector_entry->second.entries;
+			for (CacheEntry<OT>& entry : entries) {
 				//todo enable this here! //runtime_assert(optimal_node.Misclassifications() >= entry.GetLowerBound() || optimal_node.NumNodes() > entry.GetNodeBudget());
 
 				//I believe it rarely happens that we receive a solution with less nodes than 'num_nodes', but it is possible
@@ -119,7 +120,8 @@ namespace STreeD {
 
 		if (iter == hashmap.end()) { return empty_sol; }
 
-		for (CacheEntry<OT>& entry : iter->second) {
+		auto& entries = iter->second.entries;
+		for (CacheEntry<OT>& entry : entries) {
 			if (entry.GetDepthBudget() == depth && entry.GetNodeBudget() == num_nodes && entry.IsOptimal()) {
 				return entry.GetOptimalSolution();
 			}
@@ -137,16 +139,16 @@ namespace STreeD {
 
 		//if the branch has never been seen before, create a new entry for it
 		if (iter_vector_entry == hashmap.end()) {
-			std::vector<CacheEntry<OT>> vector_entry(1, CacheEntry<OT>(depth, num_nodes)); 
+			CacheEntryVector<OT> vector_entry(1, CacheEntry<OT>(depth, num_nodes)); 
 			vector_entry[0].UpdateLowerBound(lower_bound);
-			if (!data.IsHashSet()) { data.SetHash(std::hash<ADataViewBitSet>()(bitsetview)); }
-			cache[data.Size()].insert(std::pair<ADataViewBitSet, std::vector<CacheEntry<OT>> >(bitsetview, vector_entry));
+			cache[data.Size()].insert(std::pair<ADataViewBitSet, CacheEntryVector<OT> >(bitsetview, vector_entry));
 			InvalidateStoredIterators(bitsetview);
 		} else {
 			//now we need to see if this node node_budget has been seen before. 
 			//If it was seen, update it; otherwise create a new entry
 			bool found_corresponding_entry = false;
-			for (CacheEntry<OT>& entry : iter_vector_entry->second) {
+			auto& entries = iter_vector_entry->second.entries;
+			for (CacheEntry<OT>& entry : entries) {
 				if (entry.GetDepthBudget() == depth && entry.GetNodeBudget() == num_nodes) {
 					entry.UpdateLowerBound(lower_bound);
 					found_corresponding_entry = true;
@@ -170,12 +172,13 @@ namespace STreeD {
 		auto& bitsetview = data.GetBitSetView();
 		auto iter = FindIterator(bitsetview, b);// hashmap.find(data);
 
-		auto best_lower_bound = InitializeSol<OT>(true);
+		auto best_lower_bound = InitializeLB<OT>();
 		if (iter == hashmap.end()) { return best_lower_bound; }
 
 		//compute the misclassification lower bound by considering that branches with more node/depth budgets 
 		//  can only have less or equal misclassification than when using the prescribed number of nodes and depth
-		for (CacheEntry<OT>& entry : iter->second) {
+		auto& entries = iter->second.entries;
+		for (CacheEntry<OT>& entry : entries) {
 			if (num_nodes <= entry.GetNodeBudget() && depth <= entry.GetDepthBudget()) { 
 				auto& local_lower_bound = entry.GetLowerBound();
 				if (!CheckEmptySol<OT>(local_lower_bound)) {
@@ -205,7 +208,7 @@ namespace STreeD {
 	}
 
 	template <class OT>
-	typename std::unordered_map<ADataViewBitSet, std::vector<CacheEntry<OT>>>::iterator DatasetCache<OT>::FindIterator(ADataViewBitSet& data, const Branch& branch) {
+	typename std::unordered_map<ADataViewBitSet, CacheEntryVector<OT>>::iterator DatasetCache<OT>::FindIterator(ADataViewBitSet& data, const Branch& branch) {
 		for (PairIteratorBranch& p : stored_iterators[data.Size()]) {
 			if (p.branch == branch) { return p.iter; }
 		}

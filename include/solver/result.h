@@ -101,7 +101,7 @@ namespace STreeD {
 
 		SolverResult() = default;
 
-		inline bool IsFeasible() const { return scores.size() > 0 && is_proven_optimal; }
+		inline bool IsFeasible() const { return scores.size() > 0; }
 		inline bool IsProvenOptimal() const { return is_proven_optimal; }
 		int GetBestDepth() const;
 		int GetBestNodeCount() const;

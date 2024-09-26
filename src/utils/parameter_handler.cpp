@@ -153,7 +153,7 @@ namespace STreeD {
 
     void ParameterHandler::ParseCommandLineArguments(int argc, char* argv[]) {
         for (int i = 1; i < argc; i += 2) {
-            if (argv[i][0] != '-') { std::cout << "Parsing error: expected a parameter name with a '-' in the beggining, instead found this: " << argv[i][0] << "\n"; exit(1); }
+            if (argv[i][0] != '-') { std::cout << "Parsing error: expected a parameter name with a '-' in the beggining, instead found this: " << argv[i][0] << std::endl; exit(1); }
             std::string name(argv[i] + 1); //skip the zero position character since it is expected to be a '-' character
 
             if (parameters_string_.count(name) == 1) {
@@ -175,7 +175,7 @@ namespace STreeD {
                 std::stringstream(argv[i + 1]) >> value;
                 SetFloatParameter(name, value);
             } else {
-                std::cout << "Unknown parameter: " << name << "\n"; exit(1);
+                std::cout << "Unknown parameter: " << name << std::endl; exit(1);
             }
         }
     }
@@ -189,25 +189,25 @@ namespace STreeD {
                 if (parameters.type == "string") {
                     if (parameters_string_[parameters.name].current_value != parameters_string_[parameters.name].default_value) {
                         //out << "\t-" << parameters.name << " = " << parameters_string_[parameters.name].current_value << "\n";
-                        category_output += "c \t-" + parameters.name + " = " + parameters_string_[parameters.name].current_value + "\n";
+                        category_output += "\t-" + parameters.name + " = " + parameters_string_[parameters.name].current_value + "\n";
                     }
                 } else if (parameters.type == "integer") {
                     if (parameters_integer_[parameters.name].current_value != parameters_integer_[parameters.name].default_value) {
                         //out << "\t-" << parameters.name << " = " << parameters_integer_[parameters.name].current_value << "\n";
-                        category_output += "c \t-" + parameters.name + " = " + std::to_string(parameters_integer_[parameters.name].current_value) + "\n";
+                        category_output += "\t-" + parameters.name + " = " + std::to_string(parameters_integer_[parameters.name].current_value) + "\n";
                     }
                 } else if (parameters.type == "Boolean") {
                     if (parameters_boolean_[parameters.name].current_value != parameters_boolean_[parameters.name].default_value) {
                         //out << "\t-" << parameters.name << " = " << parameters_boolean_[parameters.name].current_value << "\n";
-                        category_output += "c \t-" + parameters.name + " = " + std::to_string(parameters_boolean_[parameters.name].current_value) + "\n";
+                        category_output += "\t-" + parameters.name + " = " + std::to_string(parameters_boolean_[parameters.name].current_value) + "\n";
                     }
                 } else if (parameters.type == "float") {
                     if (parameters_float_[parameters.name].current_value != parameters_float_[parameters.name].default_value) {
                         //out << "\t-" << parameters.name << " = " << parameters_float_[parameters.name].current_value << "\n";
-                        category_output += "c \t-" + parameters.name + " = " + std::to_string(parameters_float_[parameters.name].current_value) + "\n";
+                        category_output += "\t-" + parameters.name + " = " + std::to_string(parameters_float_[parameters.name].current_value) + "\n";
                     }
                 } else {
-                    std::cout << "Internal error, undefined type " << parameters.type << "\n";
+                    std::cout << "Internal error, undefined type " << parameters.type << std::endl;
                     exit(1);
                 }
             }
@@ -218,9 +218,9 @@ namespace STreeD {
         }
 
         if (complete_output == "") {
-            out << "c using default parameters\n";
+            out << "Using default parameters" << std::endl;
         } else {
-            out << "c using default parameters with the following exceptions:\nc " << complete_output << "c ---\n";
+            out << "Using default parameters with the following exceptions:" << std::endl << complete_output << "------------------------" << std::endl;
         }
     }
 
@@ -327,9 +327,18 @@ namespace STreeD {
     }
 
     void ParameterHandler::CheckParameters() const {
-        if (GetIntegerParameter("max-num-nodes") > (int(1) << GetIntegerParameter("max-depth")) - 1)
+        int max_num_nodes_by_depth = int(1L << GetIntegerParameter("max-depth")) - 1;
+        if (GetIntegerParameter("max-num-nodes") > max_num_nodes_by_depth)
         {
-            std::cout << "Error: The number of nodes exceeds the limit imposed by the depth!\n";
+            std::cout << "Error: The number of nodes exceeds the limit imposed by the depth!" << std::endl;
+            exit(1);
+        }
+
+        if (GetIntegerParameter("max-num-nodes") != max_num_nodes_by_depth && GetFloatParameter("cost-complexity") >= 1e-6) {
+            std::cout << "Error: Either set the number of nodes below the limited imposed by the maximum depth (" << max_num_nodes_by_depth
+                << ") or set the cost-complexity to non-zero, but not both. Current setting has max-num-nodes = "
+                << GetIntegerParameter("max-num-nodes")
+                << " and cost-complexity = " << GetFloatParameter("cost-complexity") << "." << std::endl;
             exit(1);
         }
     }

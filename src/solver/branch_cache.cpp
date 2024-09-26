@@ -14,8 +14,8 @@ namespace STreeD {
 		auto iter = hashmap.find(branch);
 
 		if (iter == hashmap.end()) { return false; }
-
-		for (const CacheEntry<OT>& entry : iter->second) {
+		auto& entries = iter->second.entries;
+		for (const CacheEntry<OT>& entry : entries) {
 			if (entry.GetNodeBudget() == num_nodes && entry.GetDepthBudget() == depth) {
 				return entry.IsOptimal();
 			}
@@ -39,20 +39,21 @@ namespace STreeD {
 
 		//if the branch has never been seen before, create a new entry for it
 		if (iter_vector_entry == hashmap.end()) {
-			std::vector<CacheEntry<OT>> vector_entry;
+			CacheEntryVector<OT> vector_entry;
 			for (int node_budget = sol_num_nodes; node_budget <= num_nodes; node_budget++) {
 				for (int depth_budget = optimal_node_depth; depth_budget <= std::min(depth, node_budget); depth_budget++) {
 					vector_entry.push_back({ depth_budget, node_budget, optimal_solutions });
 				}
 			}
-			cache[branch.Depth()].insert(std::pair<Branch, std::vector<CacheEntry<OT>> >(branch, vector_entry));
+			cache[branch.Depth()].insert(std::pair<Branch, CacheEntryVector<OT> >(branch, vector_entry));
 		} else {
 			//this sol is valid for size=[opt.NumNodes, num_nodes] and depths d=min(size, depth)
 
 			//now we need to see if other node budgets have been seen before. 
 			//For each budget that has been seen, update it;
 			std::vector<std::vector<bool> > budget_seen(size_t(num_nodes) + 1, std::vector<bool>(depth + 1, false));
-			for (CacheEntry<OT>& entry : iter_vector_entry->second) {
+			auto& entries = iter_vector_entry->second.entries;
+			for (CacheEntry<OT>& entry : entries) {
 				//todo enable this here! //runtime_assert(optimal_node.Misclassifications() >= entry.GetLowerBound() || optimal_node.NumNodes() > entry.GetNodeBudget());
 
 				//I believe it rarely happens that we receive a solution with less nodes than 'num_nodes', but it is possible
@@ -101,13 +102,15 @@ namespace STreeD {
 
 		if (iter_destination == hashmap.end()) //if the branch has never been seen before, create a new entry for it and copy everything into it
 		{
-			std::vector<CacheEntry<OT>> vector_entry = iter_source->second;
-			cache[branch_destination.Depth()].insert(std::pair<Branch, std::vector<CacheEntry<OT>> >(branch_destination, vector_entry));
+			auto& vector_entry = iter_source->second;
+			cache[branch_destination.Depth()].insert(std::pair<Branch, CacheEntryVector<OT> >(branch_destination, vector_entry));
 		} else {
-			for (CacheEntry<OT>& entry_source : iter_source->second) {
+			auto& entries = iter_source->second.entries;
+			for (CacheEntry<OT>& entry_source : entries) {
 				//todo could be done more efficiently
 				bool should_add = true;
-				for (CacheEntry<OT>& entry_destination : iter_destination->second) {
+				auto& entries = iter_destination->second.entries;
+				for (CacheEntry<OT>& entry_destination : entries) {
 					if (entry_source.GetDepthBudget() == entry_destination.GetDepthBudget() &&
 						entry_source.GetNodeBudget() == entry_destination.GetNodeBudget()) {
 						should_add = false;
@@ -131,7 +134,8 @@ namespace STreeD {
 		auto iter = hashmap.find(branch);
 		if (iter == hashmap.end()) { return empty_sol; }
 
-		for (CacheEntry<OT>& entry : iter->second) {
+		auto& entries = iter->second.entries;
+		for (CacheEntry<OT>& entry : entries) {
 			if (entry.GetDepthBudget() == depth && entry.GetNodeBudget() == num_nodes && entry.IsOptimal()) {
 				return entry.GetOptimalSolution();
 			}
@@ -148,14 +152,15 @@ namespace STreeD {
 
 		//if the branch has never been seen before, create a new entry for it
 		if (iter_vector_entry == hashmap.end()) {
-			std::vector<CacheEntry<OT>> vector_entry(1, CacheEntry<OT>(depth, num_nodes));
+			CacheEntryVector<OT> vector_entry(1, CacheEntry<OT>(depth, num_nodes));
 			vector_entry[0].UpdateLowerBound(lower_bound);
-			cache[branch.Depth()].insert(std::pair<Branch, std::vector<CacheEntry<OT>> >(branch, vector_entry));
+			cache[branch.Depth()].insert(std::pair<Branch, CacheEntryVector<OT> >(branch, vector_entry));
 		} else {
 			//now we need to see if this node node_budget has been seen before. 
 			//If it was seen, update it; otherwise create a new entry
 			bool found_corresponding_entry = false;
-			for (CacheEntry<OT>& entry : iter_vector_entry->second) {
+			auto& entries = iter_vector_entry->second.entries;
+			for (CacheEntry<OT>& entry : entries) {
 				//If the new lower bound is found with more relaxed discrimination budget, 
 				// yet it has a higher lower-bound, update this entry
 				if (entry.GetDepthBudget() == depth && entry.GetNodeBudget() == num_nodes) {
@@ -186,8 +191,9 @@ namespace STreeD {
 		//compute the misclassification lower bound by considering that branches with more node/depth budgets 
 		//  can only have less or equal misclassification than when using the prescribed number of nodes and depth
 		
-		auto best_lower_bound = InitializeSol<OT>(true);
-		for (CacheEntry<OT>& entry : iter->second) {
+		auto best_lower_bound = InitializeLB<OT>();
+		auto& entries = iter->second.entries;
+		for (CacheEntry<OT>& entry : entries) {
 			if (num_nodes <= entry.GetNodeBudget() && depth <= entry.GetDepthBudget()) {
 				auto& local_lower_bound = entry.GetLowerBound();
 				if (!CheckEmptySol<OT>(local_lower_bound)) {

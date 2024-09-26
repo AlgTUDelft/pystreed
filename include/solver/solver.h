@@ -24,6 +24,7 @@ https://gitlab.tudelft.nl/jgmvanderlinde/dpf
 #include "model/node.h"
 #include "model/container.h"
 
+
 #define MAX_DEPTH 20
 
 namespace STreeD {
@@ -40,6 +41,19 @@ namespace STreeD {
 		bool cache_data_splits{ false };
 		int minimum_leaf_node_size{ 1 };
 		size_t UB_LB_max_size{ 12 };
+	};
+
+	struct ProgressTracker {
+		ProgressTracker(int num_features);
+
+		void UpdateProgressCount(int count);
+		void Done();
+		void Reset() { count = 0; }
+
+		int count = { 0 };
+		int print_progress_every{ 1 };
+		int progress_length{ 1 };
+		int num_features{ 1 };
 	};
 
 	class AbstractSolver {
@@ -59,6 +73,8 @@ namespace STreeD {
 		inline int NumFeatures() const { return train_data.NumFeatures(); }
 		inline bool IsTerminalNode(int depth, int num_nodes) { return solver_parameters.use_terminal_solver && depth <= 2; }
 		inline std::string GetTaskString() const { return parameters.GetStringParameter("task"); }
+		inline const std::vector<int>& GetFeatureOrder() const { return feature_order; }
+		
 
 	protected:
 		SolverParameters solver_parameters;
@@ -67,11 +83,20 @@ namespace STreeD {
 		ADataView org_train_data, train_data, org_test_data, test_data;
 		DataSummary train_summary, test_summary;
 		DataSplitter data_splitter;
+		std::vector<int> feature_order;
+		int max_depth_finished;
 
 		Statistics stats;
 		Stopwatch stopwatch;
+		ProgressTracker progress_tracker;
 		std::default_random_engine* rng;
 	};
+
+	template <class OT>
+	using TerminalSolver_C = typename std::conditional < OT::use_terminal, TerminalSolver<OT>*, void*>::type;
+
+	template <class OT>
+	using SimilarityLowerBound_C = typename std::conditional < OT::element_additive, SimilarityLowerBoundComputer<OT>*, void*>::type;
 
 	template <class OT>
 	class Solver : public AbstractSolver {	
@@ -82,6 +107,8 @@ namespace STreeD {
 		using Context = typename OT::ContextType;		// The class type of the context (default = BranchContext)
 		using LabelType = typename OT::LabelType;		// The class of the (input) label, e.g., double for regression, int for classification
 		using SolLabelType = typename OT::SolLabelType; // The class of the leaf label, e.g., int for classification, or linear model for piecewise linear regression
+		static const bool sparse_objective = constexpr(OT::total_order && OT::has_branching_costs
+			&& OT::constant_branching_costs && (std::is_same<typename OT::SolType, double>::value || std::is_same<typename OT::SolType, int>::value));
 
 		Solver(ParameterHandler& parameters, std::default_random_engine* rng);
 		~Solver();
@@ -105,6 +132,11 @@ namespace STreeD {
 		*/
 		void InitializeTest(const ADataView& test_data, bool reset = false);
 		
+		/*
+		* Reset the cache
+		*/
+		void ResetCache();
+
 		/*
 		* Find the optimal tree for the given training data 
 		*/
@@ -168,12 +200,17 @@ namespace STreeD {
 		void LBMerge(int feature, const Context& context, SolContainer& left_sols, SolContainer& right_sols, const SolType& branching_costs, SolContainer& final_sols);
 
 		/*
+		* Compute a lower bound
+		*/
+		void ComputeLowerBound(ADataView& data, const Context& context, SolContainer& lb_out, int depth, int num_nodes);
+
+		/*
 		* Compute a lower bound from the combination of the left and right lower bound
 		*/
 		void ComputeLeftRightLowerBound(int feature, const Context& context, const SolType& branching_costs,
 			SolContainer& lb_out, SolContainer& lb_left_out, SolContainer& lb_right_out,
-			ADataView& left_data, const Branch& left_branch, int left_depth, int left_nodes,
-			ADataView& right_data, const Branch& right_branch, int right_depth, int right_nodes);
+			ADataView& left_data, const Context& left_context, int left_depth, int left_nodes,
+			ADataView& right_data, const Context& right_context, int right_depth, int right_nodes);
 
 		/*
 		* Given an upper bound UB, substract the solutions sols and the branching costs from it using the substract operator 
@@ -245,14 +282,19 @@ namespace STreeD {
 		*/
 		void ReduceNodeBudget(const ADataView& data, const Context& context, const SolContainer& UB, int& max_depth, int& num_nodes) const;
 
+		/*
+		* Return true if a feature is redundant
+		*/
+		bool IsRedundantFeature(int feature) const { return redundant_features[feature]; }
+
 	private:
 		OT* task{ nullptr };
 		Cache<OT>* cache{ nullptr };
-		typename std::conditional < OT::use_terminal, TerminalSolver<OT>*, void*>::type
-			terminal_solver1{ nullptr }, terminal_solver2{ nullptr };
-		typename std::conditional < OT::element_additive, SimilarityLowerBoundComputer<OT>*, void*>::type
-			similarity_lower_bound_computer{ nullptr };
+		
+		TerminalSolver_C<OT> terminal_solver1{ nullptr }, terminal_solver2{ nullptr };
+		SimilarityLowerBound_C<OT> similarity_lower_bound_computer{ nullptr };
 		SolContainer global_UB;
 		std::vector<int> flipped_features;
+		std::vector<int> redundant_features;
 	};
 }

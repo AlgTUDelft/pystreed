@@ -65,6 +65,7 @@ namespace STreeD {
 		static const bool has_constraint = true;
 		static const bool terminal_filter = true;
 		static const bool terminal_compute_context = true;
+		static const bool terminal_zero_costs_true_label = false; // True iff the costs of assigning the true label in the terminal is zero
 		static constexpr EqOppSol worst = { INT32_MAX, INT32_MAX, INT32_MAX, false };
 		static constexpr EqOppSol best = { 0, 0, 0, true };
 

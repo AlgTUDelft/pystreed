@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
 		exit(1);
 	}
 
-	if (parameters.GetBooleanParameter("verbose")) { parameters.PrintParameterValues(); }
+	if (parameters.GetBooleanParameter("verbose")) { parameters.PrintParametersDifferentFromDefault(); }
 	std::default_random_engine rng;
 	if (parameters.GetIntegerParameter("random-seed") == -1) { 
 		rng = std::default_random_engine(int(time(0)));

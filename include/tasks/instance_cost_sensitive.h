@@ -46,6 +46,7 @@ namespace STreeD {
 		static const bool custom_leaf = false;
 		static const bool preprocess_train_test_data = true;
 		static const bool custom_similarity_lb = true;
+        static const bool terminal_zero_costs_true_label = false; // True iff the costs of assigning the true label in the terminal is zero
 		static constexpr  double worst = DBL_MAX;
 		static constexpr  double best = 0;
 

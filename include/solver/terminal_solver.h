@@ -76,8 +76,8 @@ namespace STreeD {
 
 		void SolveOneNode(const ADataView& data, const Context& context, bool initialized);
 		void InitialiseChildrenInfo(const Context& context, const ADataView& data);
-		void UpdateBestLeftChild(int root_feature, int feature, const SolType& solution);
-		void UpdateBestRightChild(int root_feature, int feature, const SolType& solution);
+		void UpdateBestLeftChild(ChildrenInformation& child_info, const SolType& solution);
+		void UpdateBestRightChild(ChildrenInformation& child_info, const SolType& solution);
 		void UpdateBestTwoNodeAssignment(const Context& context, int root_feature);
 		void UpdateBestThreeNodeAssignment(const Context& context, int root_feature);
 

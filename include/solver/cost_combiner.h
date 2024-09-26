@@ -13,7 +13,7 @@ https://bitbucket.org/EmirD/murtree
 #include "tasks/tasks.h"
 
 namespace STreeD {
-
+		
 	template<class OT>
 	struct Sols {
 		using SolType = typename OT::SolType;
@@ -39,7 +39,7 @@ namespace STreeD {
 		using Context = typename OT::ContextType;
 
 		CostCalculator() = delete;
-		CostCalculator(OT* task, int num_features, int num_labels);
+		CostCalculator(OT* task, int num_features, int num_labels, const std::vector<int>& feature_order);
 
 		bool Initialize(const ADataView& data, const Context& branch, int num_nodes);
 		void InitializeReconstruct(const ADataView& data, const Context& branch, int feature);
@@ -90,6 +90,9 @@ namespace STreeD {
 		Counter counter;
 		std::vector<std::vector<IndexInfo>> index_infos;
 		mutable typename OT::SolD2Type temp_costs1, temp_costs2;
+		mutable std::vector<int> labels;
+		mutable ADataView data_add, data_remove;
+		std::vector<int> feature_order;
 	};
 
 }

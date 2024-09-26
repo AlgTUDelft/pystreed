@@ -31,6 +31,14 @@ namespace STreeD {
 	}
 
 	/*
+	* Initialize an empty lower bound.
+	*/
+	template <class OT>
+	SolContainer<OT> InitializeLB() {
+		return InitializeSol<OT>(true);
+	}
+
+	/*
 	* Set the size budget of the solution set
 	* (not used currently)
 	*/
@@ -124,7 +132,7 @@ namespace STreeD {
 	* If the current node is the root node, use the root-node comparator to determine dominance
 	*/
 	template <class OT>
-	inline void AddSols(OT* task, const int depth, SolContainer<OT>& container, SolContainer<OT>& sols) {
+	inline void AddSols(OT* task, const int depth, SolContainer<OT>& container, const SolContainer<OT>& sols) {
 		if constexpr (OT::total_order) {
 			if (sols.solution < container.solution) container = sols;
 		} else {
@@ -186,7 +194,7 @@ namespace STreeD {
 	bool LeftDominatesRight(const typename OT::SolType& left, const typename OT::SolType& right) {
 		if constexpr (OT::total_order) {
 			if constexpr (std::is_same<typename OT::SolType, double>::value) {
-				return left * (1 + DBL_DIFF) <= right;
+				return left * (1 + DBL_DIFF) <= right || std::abs(left - right) <= DBL_DIFF * left;
 			}
 			return left <= right;
 		} else {

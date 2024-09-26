@@ -44,6 +44,7 @@ namespace STreeD {
 
 		static const bool total_order = true;
 		static const bool custom_leaf = true;
+		static const bool expensive_leaf = true; // This OT has an expensive leaf node optimization function
 		static const bool preprocess_data = true;
 		static const bool preprocess_train_test_data = true;
 		static const bool has_branching_costs = true;
@@ -52,6 +53,7 @@ namespace STreeD {
 		static const bool custom_similarity_lb = true; 
 		static const bool element_additive = true; 
 		static const bool use_terminal = true; 
+		static const bool terminal_zero_costs_true_label = false; // True iff the costs of assigning the true label in the terminal is zero
 		static constexpr double worst = DBL_MAX;
 		static constexpr double best = 0;
 		static constexpr bool use_weights = true;
@@ -103,7 +105,8 @@ namespace STreeD {
 		//inline double ComputeTestTestScore(double test_value) const { return 1 - test_value / test_total_variance; }
 		inline static bool CompareScore(double score1, double score2) { return score1 < score2; } // return true if score1 is better than score2
 
-		inline static std::string SolToString(const LinearModel& label) { return label.ToString(); }
+		inline static std::string LabelToString(const LinearModel& label) { return label.ToString(); }
+		inline static std::string SolToString(double sol_val) { return std::to_string(sol_val); }
 
 		static TuneRunConfiguration GetTuneRunConfiguration(const ParameterHandler& default_config, const ADataView& data, int phase);
 

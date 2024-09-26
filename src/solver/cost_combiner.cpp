@@ -3,10 +3,10 @@
 namespace STreeD {
 
 	template <class OT>
-	CostCalculator<OT>::CostCalculator(OT* task, int num_features, int num_labels) : num_features(num_features), 
+	CostCalculator<OT>::CostCalculator(OT* task, int num_features, int num_labels, const std::vector<int>& feature_order) : num_features(num_features), 
 		task(task), counter(num_features), cost_storage(num_labels, CostStorage<OT>(num_features)), num_nodes(-1),
 		branching_costs(num_features, std::vector<typename CostCalculator<OT>::BranchSolD2Type>(num_features)),
-		index_infos(num_features, std::vector<IndexInfo>(num_features)) {
+		index_infos(num_features, std::vector<IndexInfo>(num_features)), feature_order(feature_order) {
 		InitializeIndexInfos(num_features);
 	}
 
@@ -14,8 +14,10 @@ namespace STreeD {
 	bool CostCalculator<OT>::Initialize(const ADataView& data, const typename CostCalculator<OT>::Context& context, int num_nodes) {
 		const bool depth_same = (num_nodes == 1) == (this->num_nodes == 1);
 		const bool using_incremental_updates = this->data.IsInitialized() && depth_same;
-		ADataView data_add(data.GetData(), data.NumLabels()), data_remove(data.GetData(), data.NumLabels());
+		//ADataView data_add(data.GetData(), data.NumLabels()), data_remove(data.GetData(), data.NumLabels());
 		if (using_incremental_updates) {
+			data_add.ResetReserve(data);
+			data_remove.ResetReserve(data);
 			BinaryDataDifferenceComputer::ComputeDifference(this->data, data, data_add, data_remove);
 			if (data_add.Size() == 0 && data_remove.Size() == 0 && (num_nodes == this->num_nodes || !OT::terminal_filter)) return false;
 		}
@@ -30,6 +32,7 @@ namespace STreeD {
 			for (size_t k = 0; k < cost_storage.size(); k++)
 				cost_storage[k].ResetToZeros();
 			counter.ResetToZeros();
+			
 			UpdateCosts(data, +1);
 		}
 		ResetBranchingCosts(); // TODO recompute even if no changes made, because context changes
@@ -102,18 +105,13 @@ namespace STreeD {
 			}
 			return;
 		}
-
-		for (int i = 0; i < num_present_features; i++) {
-			const int feature1 = data_point->GetJthPresentFeature(i);
-			int ix = _cost_storage.IndexSymmetricMatrixOneDim(feature1);
-			for (int j = i; j < num_present_features; j++) {
-				const int feature2 = data_point->GetJthPresentFeature(j);
-				if constexpr (update_cost) {
-					_cost_storage.UpdateCosts(ix + feature2, costs);
-				}
-				if constexpr (update_count) {
-					counter.UpdateCount(ix + feature2, multiplier);
-				}
+		
+		for (const int& index: data_point->GetPresentFeaturePairIndices()) {
+			if constexpr (update_cost) {
+				_cost_storage.UpdateCosts(index, costs);
+			}
+			if constexpr (update_count) {
+				counter.UpdateCount(index, multiplier);
 			}
 		}
 
@@ -123,17 +121,25 @@ namespace STreeD {
 	void CostCalculator<OT>::UpdateCosts(const ADataView& data, int multiplier) {
 		typename CostCalculator<OT>::SolD2Type costs; // dummy values
 		const bool only_one_dimension = num_nodes == 1;
+		labels = { 0 };
 		for (int org_label = 0; org_label < data.NumLabels(); org_label++) {
+			if (data.NumLabels() > 1) {
+				labels.clear();
+				for (int label = 0; label < data.NumLabels(); label++) {
+					if (!OT::terminal_zero_costs_true_label || label != org_label) labels.push_back(label);
+				}
+			} 
+			int first_label = labels[0];
 			for (auto& data_point : data.GetInstancesForLabel(org_label)) {
 				
-				for (int label = 0; label < data.NumLabels(); label++) {
+				for(const int label: labels) {
 
 					auto& _cost_storage = cost_storage[label];
 					task->GetInstanceLeafD2Costs(data_point, org_label, label, costs, multiplier);
 					if (task->IsD2ZeroCost(costs)) { // Zero costs
-						if (label > 0) continue;
+						if (label > first_label) continue;
 						UpdateCountCost<OT, true, false>(data_point, _cost_storage, counter, costs, multiplier, only_one_dimension);
-					} else if (label > 0) {
+					} else if (label > first_label) {
 						UpdateCountCost<OT, false, true>(data_point, _cost_storage, counter, costs, multiplier, only_one_dimension);
 					} else {
 						UpdateCountCost<OT, true, true>(data_point, _cost_storage, counter, costs, multiplier, only_one_dimension);
@@ -409,17 +415,16 @@ namespace STreeD {
 	template <class OT>
 	void CostCalculator<OT>::GetCounts(Counts& counts, const IndexInfo& index) const {
 		int countf1f1 = counter.GetCount(index.ix_f1f1);
-		int countf1f2 = counter.GetCount(index.ix_f1f2);
 		int countf2f2 = counter.GetCount(index.ix_f2f2);
-		counts.count00 = counter.GetTotalCount() - countf1f1 - countf2f2 + countf1f2;
-		counts.count11 = countf1f2;
+		counts.count11 = counter.GetCount(index.ix_f1f2);
+		counts.count00 = counter.GetTotalCount() - countf1f1 - countf2f2 + counts.count11;
 		if (index.swap) {
-			counts.count10 = countf2f2 - countf1f2;
-			counts.count01 = countf1f1 - countf1f2;
+			counts.count10 = countf2f2 - counts.count11;
+			counts.count01 = countf1f1 - counts.count11;
 			return;
 		}
-		counts.count01 = countf2f2 - countf1f2;
-		counts.count10 = countf1f1 - countf1f2;
+		counts.count01 = countf2f2 - counts.count11;
+		counts.count10 = countf1f1 - counts.count11;
 	}
 
 	template <class OT>
@@ -445,17 +450,6 @@ namespace STreeD {
 		if (f1 > f2) { std::swap(f1, f2); }
 		return counter.GetCount(f1, f2);
 	}
-
-	//template <class OT>
-	//const typename CostCalculator<OT>::SolLabelType CostCalculator<OT>::GetLeafLabel(int label) const {
-	//	if constexpr (OT::custom_get_label || std::is_same<typename OT::LabelType, double>::value) {
-	//		auto sum = GetCosts00(label, 0, 0) + GetCosts11(label, 0, 0);
-	//		int count = GetCount00(0, 0) + GetCount11(0, 0);
-	//		return task->GetLabel(sum, count);
-	//	} else {
-	//		return label;
-	//	}
-	//}
 
 	template <class OT>
 	const typename CostCalculator<OT>::SolLabelType CostCalculator<OT>::GetLabel00(int label, int f1, int f2) const {

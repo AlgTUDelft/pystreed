@@ -33,18 +33,17 @@ namespace STreeD {
 
 	template <class OT>
 	PairLowerBoundOptimal<OT> SimilarityLowerBoundComputer<OT>::ComputeLowerBound(ADataView& data, const Branch& branch, int depth, int num_nodes, Cache<OT>* cache) {
-		auto empty_lb = InitializeSol<OT>(true);
+		auto empty_lb = InitializeLB<OT>();
 		if (disabled_) { return PairLowerBoundOptimal<OT>(empty_lb, false); }
 
-		const double max_difference = 1.0; // 1.0 is a dummy parameter. If a dataset differs more than 100%, dont compute a similarity bound. Todo: add configurable parameter
+		const double max_difference = 0.5; // 0.5 is a dummy parameter. If a dataset differs more than 50%, dont compute a similarity bound
 		PairLowerBoundOptimal<OT> result(empty_lb, false);
 		auto& lb = result.lower_bound;
 		for (auto& entry : archive_[depth]) {
-			if (entry.data.Size() > data.Size() * (1 + max_difference) || entry.data.Size() < data.Size() * (1 - max_difference)) { continue; }
+			if (entry.data.Size() > data.Size() * (1 + max_difference)) { continue; }
 
 			if constexpr (OT::custom_similarity_lb) {
 				auto metrics = task->ComputeSimilarityLowerBound(entry.data, data);
-				if (metrics.total_difference > max_difference * data.Size()) continue;
 
 				auto entry_lower_bound = cache->RetrieveLowerBound(entry.data, entry.branch, depth, num_nodes);
 				entry_lower_bound = SubstractLB(entry_lower_bound, metrics.subtract);
@@ -60,7 +59,7 @@ namespace STreeD {
 				AddSolsInv<OT>(lb, entry_lower_bound);
 			} else {
 				DifferenceMetrics metrics = BinaryDataDifferenceComputer::ComputeDifferenceMetrics(entry.data, data);
-				if (metrics.total_difference > max_difference * data.Size()) continue;
+				if (metrics.GetNumRemovals() > max_difference * data.Size()) continue;
 
 				auto entry_lower_bound = cache->RetrieveLowerBound(entry.data, entry.branch, depth, num_nodes);
 				SolType subtract = _worst[0] * metrics.num_removals[0];

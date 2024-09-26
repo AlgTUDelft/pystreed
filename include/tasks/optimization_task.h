@@ -36,9 +36,12 @@ namespace STreeD {
 		static const bool element_additive = true;		// True iff this OT is element-additive, for using the similarity lower bound
 		static const bool has_constraint = false;		// True iff this OT has constraints
 		static const bool terminal_filter = false;		// True if you want to filter infeasible and UB dominated solutions in the terminal
+		static const bool terminal_zero_costs_true_label = true; // True iff the costs of assigning the true label in the terminal is zero
 		static const bool has_branching_costs = false;	// True iff this OT has branching costs
 		static const bool constant_branching_costs = false; // True iff the branching costs are constant
 		static const bool custom_lower_bound = false;	// True iff this task has a custom lower bound
+		static const bool combine_custom_lb_purification = false; // True iff the custom lower bound of this task can be combined with the purification bound
+		static const bool expensive_leaf = false;		// True iff this task has an expensive leaf node optimization function
 		static const bool preprocess_data = false;		// True iff this task needs to preprocess the data after it is read from file
 		static const bool preprocess_train_test_data = false;// True iff this task needs to preprocess the training data before training
 		static const bool postprocess_tree = false;    // True iff this task needs to post-process
@@ -82,6 +85,8 @@ namespace STreeD {
 		inline static void Subtract(const double left, const double right, double& out) { out = std::max(0.0, left - right); }
 
 		// Print functions
+		inline static std::string LabelToString(double sol_val) { return std::to_string(sol_val); }
+		inline static std::string LabelToString(int sol_val) { return std::to_string(sol_val); }
 		inline static std::string SolToString(double sol_val) { return std::to_string(sol_val); }
 		inline static std::string SolToString(int sol_val) { return std::to_string(sol_val); }
 		inline static std::string ScoreToString(double sol_val) { return std::to_string(sol_val); }

@@ -2,12 +2,12 @@ from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.base import BaseEstimator
 from sklearn.utils.validation import check_array, check_is_fitted
 from .cstreed import initialize_streed_solver, ParameterHandler
-from pystreed.binarizer import Binarizer, _column_threshold
+from pystreed.binarizer import Binarizer
+from pystreed.utils import _dynamic_float_formatter
 from typing import Optional
 import numpy as np
 import warnings
 import math
-import time
 import numbers
 import sys
 
@@ -37,6 +37,7 @@ class BaseSTreeDSolver(BaseEstimator):
             optimization_task: str,
             max_depth: int = 3,
             max_num_nodes: Optional[int] = None,
+            all_trees: bool = False,
             min_leaf_node_size: int = 1,
             time_limit: float = 600,
             cost_complexity : float = 0.01,
@@ -61,6 +62,7 @@ class BaseSTreeDSolver(BaseEstimator):
             optimization_task: the objective used for optimization.
             max_depth: the maximum depth of the tree
             max_num_nodes: the maximum number of branching nodes of the tree
+            all_trees: Enable/disable searching for trees in increasing order of size (slower)
             min_leaf_node_size: the minimum number of training instance that should end up in every leaf node
             time_limit: the time limit in seconds for fitting the tree
             cost_complexity: the cost of adding a branch node, expressed as a percentage. E.g., 0.01 means a branching node may be added if it increases the training accuracy by at least 1%.
@@ -83,6 +85,7 @@ class BaseSTreeDSolver(BaseEstimator):
         self.optimization_task = optimization_task
         self.max_depth = max_depth
         self.max_num_nodes = max_num_nodes
+        self.all_trees = all_trees
         self.min_leaf_node_size = min_leaf_node_size
         self.time_limit = time_limit
         self.cost_complexity = cost_complexity
@@ -123,9 +126,14 @@ class BaseSTreeDSolver(BaseEstimator):
         self._params.hyper_tune = self.hyper_tune
         self._params.max_depth = self.max_depth
         self._params.max_num_nodes = max_num_nodes
+        self._params.all_trees = self.all_trees
         self._params.min_leaf_node_size = self.min_leaf_node_size
         self._params.time_limit = self.time_limit
-        self._params.cost_complexity = self.cost_complexity
+        if self.optimization_task in ["cost-complex-accuracy", \
+                "cost-complex-regression", "piecewise-linear-regression", "simple-linear-regression"]:
+            self._params.cost_complexity = self.cost_complexity
+        else:
+            self._params.cost_complexity = 0.0
         self._params.feature_ordering = self.feature_ordering
         self._params.verbose = self.verbose
         self._params.random_seed = self.random_seed
@@ -263,12 +271,8 @@ class BaseSTreeDSolver(BaseEstimator):
             self._solver._update_parameters(self._params)
         self._post_initialize_solver()
                 
-        start_time = time.time()
         self.fit_result = self._solver._solve(X, y, extra_data)
-        duration = time.time() - start_time
         
-        if duration > self.time_limit:
-            warnings.warn("Fitting exceeds time limit.", stacklevel=2)
         if not self.fit_result.is_feasible():
             warnings.warn("No feasible tree found.", stacklevel=2)
             delattr(self, "fit_result")
@@ -359,7 +363,7 @@ class BaseSTreeDSolver(BaseEstimator):
         if " <= " in feature_name:
             feature_name, threshold = feature_name.split(" <= ")
             if len(threshold) >= 3:
-                threshold = _column_threshold(float(threshold))
+                threshold = _dynamic_float_formatter(float(threshold))
             return f"{feature_name} {self.__comparator} {threshold}"
         return feature_name
 
@@ -418,12 +422,15 @@ class BaseSTreeDSolver(BaseEstimator):
         hex_line_color = "#{:02x}{:02x}{:02x}".format(*[int(0.4 * c) for c in color])
         fh.write(f"{node_id}  [label=\"{label}\", color=\"{hex_line_color}\" fillcolor=\"{hex_color}\"] ;\n")
 
+    def _export_dot_predicate_node(self, fh, node, node_id, feature_names, label_names, train_data):
+        predicate = self._get_predicate_str(node.feature, feature_names,)
+        fh.write(f"{node_id} [label=\"{predicate}\", color=\"#222222\", fillcolor=\"#EEEEEE\"] ;\n")
+
     def _recursive_export_dot(self, fh, node, node_id, feature_names, label_names, train_data):
         if node.is_leaf_node():
             self._export_dot_leaf_node(fh, node, node_id, label_names, train_data)
         else:
-            predicate = self._get_predicate_str(node.feature, feature_names)
-            fh.write(f"{node_id} [label=\"{predicate}\", color=\"#222222\", fillcolor=\"#EEEEEE\"] ;\n")
+            self._export_dot_predicate_node(fh, node, node_id, feature_names, label_names, train_data)
         if node_id > 0:
             parent_id = (node_id - 1) // 2
             feature_label = "True" if (node_id % 2) == 0 else "False"

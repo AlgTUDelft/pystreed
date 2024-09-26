@@ -2,8 +2,10 @@ from pystreed.data import CostVector
 from pystreed.base import BaseSTreeDSolver
 from sklearn.utils._param_validation import Interval, StrOptions
 from typing import Optional
-from pystreed.utils import _color_brew
+from pystreed.utils import _color_brew, _dynamic_float_formatter
 import numpy as np
+import os
+from pathlib import Path
 
 class STreeDInstanceCostSensitiveClassifier(BaseSTreeDSolver):
 
@@ -165,8 +167,97 @@ class STreeDInstanceCostSensitiveClassifier(BaseSTreeDSolver):
         y_test, extra_data = self._check_data(y_test, reset=False)
         return super().score(X, y_test, extra_data)
 
-    def _export_dot_leaf_node(self, fh, node, node_id, label_names, train_data):
+    def export_dot(self, filename, feature_names=None, label_names=None):
+        """
+        Export the tree as a .dot file (for plotting)
+        """
+        self.__export_directory = Path(filename).parent.absolute() / "leaf-distributions"
+        return super().export_dot(filename, feature_names, label_names)
+    
+    def _get_branching_color(self, cost_sums):
+        if not hasattr(self, "colors"):
+            self.colors = _color_brew(self.n_classes_)
+        best_ix = int(np.argmin(cost_sums))
+        color = list(self.colors[best_ix])
+        total_costs = sum(cost_sums)
+        if cost_sums[best_ix] < 0.01 * total_costs:
+            alpha = 0.0
+        else:
+            sorted_costs = sorted(cost_sums)
+            if sorted_costs[1] < 0.01:
+                alpha = 0.0
+            else:
+                alpha = (sorted_costs[1] - sorted_costs[0]) / (sorted_costs[1])
+        color = [int(round(alpha * c + (1 - alpha) * 255, 0)) for c in color]
+        # Return html color code in #RRGGBB format
+        return "#%2x%2x%2x" % tuple(color)
+
+    def _export_bar_plot(self, fh, node_id, label_names, train_data, text_prefix=""):
         if not hasattr(self, "_colors"):
             self._colors = _color_brew(self.n_classes_)
-        color = self._colors[node.label]
-        return super()._export_dot_leaf_node(fh, node, node_id, label_names, train_data, color=color)
+        import matplotlib.pyplot as plt
+        plt.rc('axes', labelsize=6)
+        plt.rc('xtick', labelsize=6)
+        plt.rc('ytick', labelsize=6)
+        plt.rc("axes", titlesize=7)
+        cost_sums = np.zeros(self.n_classes_)
+        costs = train_data[2]
+        n = len(costs)
+        for row in costs:
+            for label in range(self.n_classes_):
+                cost_sums[label] += row.costs[label]
+        cost_sums /= n
+        best_label = int(np.argmin(cost_sums))
+        color = self._colors[best_label]
+
+        colors = ['tab:gray' for label in range(self.n_classes_)]
+        colors[best_label] = [c / 256 for c in color]
+        _label_names = [self._get_label_str(i, label_names) for i in range(self.n_classes_)]
+        label_costs = zip(_label_names, cost_sums, colors)
+        label_costs = sorted(label_costs, key=lambda i: i[1])[:4]
+        _label_names, cost_sums, colors = [list(i) for i in list(zip(*label_costs))]
+        _label_names.reverse()
+        cost_sums.reverse()
+        colors.reverse()
+
+        plt.figure(figsize=(1.8,1.2))
+        plt.barh(_label_names, cost_sums, color=colors)
+        label =  self._get_label_str(best_label, label_names)
+        plt.title(f"{text_prefix} N = {n}, Best = {label}, Costs = {_dynamic_float_formatter(min(cost_sums))}")
+
+        filename = self.__export_directory / f"leaf_ics_{node_id}.png"
+        if not os.path.exists(self.__export_directory):
+            os.makedirs(self.__export_directory)
+        plt.savefig(filename, bbox_inches="tight", dpi=600)
+        
+        fh.write(f"{node_id}  [label=\"\", image=\"{filename}\", width=2.0, height=1.3, fixedsize=true, shape=none] ;\n")
+    
+    def _export_dot_predicate_node(self, fh, node, node_id, feature_names, label_names, train_data):
+        predicate = self._get_predicate_str(node.feature, feature_names)
+        try:
+            self._export_bar_plot(fh, node_id, label_names, train_data, f"{predicate}\n")
+        except:
+            cost_sums = np.zeros(self.n_classes_)
+            costs = train_data[2]
+            n = len(costs)
+            for row in costs:
+                for label in range(self.n_classes_):
+                    cost_sums[label] += row.costs[label]
+            cost_sums /= n
+            best_ix = int(np.argmin(cost_sums))
+            best_label = self._get_label_str(best_ix, label_names)
+            best_costs = cost_sums[best_ix]
+            branching_color = self._get_branching_color(cost_sums)
+            fh.write(f"{node_id} [label=\"{predicate}\nN = {n}, Best = {best_label}, Costs = {_dynamic_float_formatter(best_costs)}\", color=\"#222222\", fillcolor=\"{branching_color}\"] ;\n") 
+
+    def _export_dot_leaf_node(self, fh, node, node_id, label_names, train_data):
+        try:
+            self._export_bar_plot(fh, node_id, label_names, train_data)
+        except:
+            if not hasattr(self, "_colors"):
+                self._colors = _color_brew(self.n_classes_)
+            color = self._colors[node.label]
+            label =  self._get_label_str(node.label, label_names)
+            hex_color = "#{:02x}{:02x}{:02x}".format(*color)
+            hex_line_color = "#{:02x}{:02x}{:02x}".format(*[int(0.4 * c) for c in color])
+            fh.write(f"{node_id}  [label=\"{label}\", color=\"{hex_line_color}\" fillcolor=\"{hex_color}\"] ;\n")

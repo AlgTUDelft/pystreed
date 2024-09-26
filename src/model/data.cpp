@@ -9,6 +9,23 @@ namespace STreeD {
 		for (const auto& v : instances) size += int(v.size());
 	}
 
+	void ADataView::Initialize(const AData* data, int num_labels) {
+		this->data = data;
+		this->size = 0;
+		instances.resize(num_labels);
+		instance_weights.resize(num_labels);
+	}
+
+	void ADataView::ResetReserve(const ADataView& other) {
+		Initialize(other.GetData(), other.NumLabels());
+		for (int k = 0; k < other.NumLabels(); k++) {
+			instances[k].clear();
+			instance_weights[k].clear();
+			instances[k].reserve(other.NumInstancesForLabel(k));
+		}
+		bitset_view = ADataViewBitSet();
+	}
+
 	void ADataView::SplitData(int feature, ADataView& left, ADataView& right) const {
 		left.data = data;
 		right.data = data;
@@ -19,7 +36,9 @@ namespace STreeD {
 		//std::vector<std::vector<std::vector<int>>> label_indices(NumLabels(), std::vector<std::vector<int>>(2)); // second index: 0=left, 1=right
 		for (int label = 0; label < NumLabels(); label++) {
 			auto& _instances = GetInstancesForLabel(label);
-			for (auto& instance : _instances) {
+			left.instances[label].reserve(_instances.size());
+			right.instances[label].reserve(_instances.size());
+			for (auto instance : _instances) {
 				if (instance->IsFeaturePresent(feature)) {
 					right.instances[label].push_back(instance);
 				} else {

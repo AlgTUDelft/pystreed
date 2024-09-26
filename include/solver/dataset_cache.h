@@ -36,7 +36,7 @@ namespace STreeD {
 		//we store a few iterators that were previous used in case they will be used in the future
 		//useful when we query the cache multiple times for the exact same query
 		struct PairIteratorBranch {
-			typename std::unordered_map<ADataViewBitSet, std::vector<CacheEntry<OT>>>::iterator iter;
+			typename std::unordered_map<ADataViewBitSet, CacheEntryVector<OT>>::iterator iter;
 			Branch branch;
 		};
 
@@ -45,9 +45,9 @@ namespace STreeD {
 	private:
 
 		//cache[i] is a hash table with datasets of size i	
-		std::vector<std::unordered_map<ADataViewBitSet, std::vector<CacheEntry<OT>>>> cache; 
+		std::vector<std::unordered_map<ADataViewBitSet, CacheEntryVector<OT>>> cache;
 
-		typename std::unordered_map<ADataViewBitSet, std::vector<CacheEntry<OT>>>::iterator FindIterator(ADataViewBitSet& data, const Branch& branch);
+		typename std::unordered_map<ADataViewBitSet, CacheEntryVector<OT>>::iterator FindIterator(ADataViewBitSet& data, const Branch& branch);
 		std::vector<std::deque<PairIteratorBranch> > stored_iterators;
 
 		SolContainer empty_sol;

@@ -33,6 +33,7 @@ namespace STreeD {
 		static const bool total_order = false;
 		static const bool custom_leaf = false;
 		static const bool check_unique = false;
+		static const bool terminal_zero_costs_true_label = false; // True iff the costs of assigning the true label in the terminal is zero
 		static constexpr F1ScoreSol worst = { INT32_MAX, INT32_MAX };
 		static constexpr F1ScoreSol best = { 0, 0 };
 

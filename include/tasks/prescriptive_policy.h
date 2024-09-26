@@ -39,6 +39,7 @@ namespace STreeD {
 
 		static const bool total_order = true;
 		static const bool custom_leaf = false;
+		static const bool terminal_zero_costs_true_label = false; // True iff the costs of assigning the true label in the terminal is zero
 		static const int worst = INT32_MAX;
 		static const int best = 0;
 

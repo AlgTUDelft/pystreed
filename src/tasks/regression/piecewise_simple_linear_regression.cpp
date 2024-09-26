@@ -6,7 +6,7 @@ namespace STreeD {
 	const LinearModel SimpleLinearRegression::worst_label = LinearModel();
 
 	SimpleLinRegExtraData::SimpleLinRegExtraData(const std::vector<double>& x) : PieceWiseLinearRegExtraData(x) {
-		int num_features = x.size();
+		int num_features = int(x.size());
 		xsq.resize(num_features, 0.0);
 		yx.resize(num_features, 0.0);
 	}

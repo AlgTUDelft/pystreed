@@ -85,6 +85,7 @@ namespace STreeD {
 		static const bool preprocess_train_test_data = true;	// Preprocessing computes the baseline cumulative hazard function
 		static const bool use_terminal = true;					// activates the depth-two solver
 		static const bool element_additive = false;				// deactivates the similarity lower bound
+		static const bool terminal_zero_costs_true_label = false; // True iff the costs of assigning the true label in the terminal is zero
 
 		static const bool total_order = true;			// This otimization task is totally ordered
 		static const bool custom_leaf = true;			// A custom leaf node optimization function is provided

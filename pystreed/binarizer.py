@@ -103,8 +103,7 @@ class Binarizer:
                 X_cont = X[:, self.continuous_columns]
         if len(self.binary_columns) > 0:
             if isinstance(X_bin, pd.DataFrame) and not is_numeric_dtype(X_bin):
-                X_bin.columns = [f"Binary Feature {i+1}" for i in range(X_bin.shape[1])] 
-                X = X.rename(str,axis="columns")
+                X_bin.columns = [f"Binary Feature {i+1}" if not isinstance(X_bin.columns[i], str) else X_bin.columns[i] for i in range(X_bin.shape[1])]
             parts.append(X_bin)
         if len(self.categorical_columns) > 0:
             X_cat = self.categorical_binarizer.transform(X_cat)
@@ -349,13 +348,3 @@ class KThresholdBinarizer(BaseEstimator, TransformerMixin):
         column_names = itertools.chain.from_iterable(self.column_names_)
         return pd.DataFrame(bin_X, columns=column_names)
     
-def _column_threshold(t):
-    if int(t) == t:
-        return str(t)
-    if t % 1 == 0:
-        return str(t)
-    if math.log10(abs(t)) >= 6 or math.log10(abs(t)) <= -4:
-        return f"{t:.2e}"
-    if math.log10(abs(t)) >= 2:
-        return f"{t:.2f}".rstrip('0').rstrip('.')
-    return f"{t:f}".rstrip('0').rstrip('.')

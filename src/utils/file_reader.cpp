@@ -31,15 +31,16 @@ namespace STreeD {
 		std::string test_file = parameters.GetStringParameter("test-file");
 		int num_extra_cols = int(parameters.GetIntegerParameter("num-extra-cols"));
 		int num_instances = int(parameters.GetIntegerParameter("num-instances"));
+		int max_num_features = int(parameters.GetIntegerParameter("max-num-features"));
 		int duplicate_factor = int(parameters.GetIntegerParameter("duplicate-factor"));
 		double train_test_split = parameters.GetFloatParameter("train-test-split");
 		bool stratify = parameters.GetBooleanParameter("stratify");
 
-		FileReader::ReadFromFile<typename OT::LabelType, typename OT::ET>(data, train_file, num_extra_cols, num_instances, 0, duplicate_factor);
+		FileReader::ReadFromFile<typename OT::LabelType, typename OT::ET>(data, train_file, num_extra_cols, num_instances, max_num_features, 0, duplicate_factor);
 		int train_size = data.Size();
 
 		if (test_file != "") {
-			FileReader::ReadFromFile<typename OT::LabelType, typename OT::ET>(data, test_file, num_extra_cols, INT32_MAX, train_size, 1);
+			FileReader::ReadFromFile<typename OT::LabelType, typename OT::ET>(data, test_file, num_extra_cols, INT32_MAX, max_num_features, train_size, 1);
 			FillDataView<OT>(data, train_data, 0, train_size);
 			FillDataView<OT>(data, test_data, train_data.Size(), data.Size());
 		} else {
@@ -77,7 +78,7 @@ namespace STreeD {
 
 	template<class LT, class ET>
 	void FileReader::ReadFromFile(AData& data, std::string filename, int num_extra_cols,
-		int num_instances, int initial_id, int duplicate_instances_factor) {
+		int num_instances, int max_num_features, int initial_id, int duplicate_instances_factor) {
 		
 		std::ifstream file(filename.c_str());
 
@@ -103,7 +104,7 @@ namespace STreeD {
 			} else {
 				indices.resize(available_instances);
 				std::iota(indices.begin(), indices.end(), 0);
-				std::shuffle(indices.begin(), indices.end(), std::random_device());
+				std::shuffle(indices.begin(), indices.end(), std::random_device()); // TODO use the same random device
 				indices.resize(num_instances);
 				std::sort(indices.begin(), indices.end());
 			}
@@ -127,8 +128,9 @@ namespace STreeD {
 			auto extra_data = ET::ReadData(iss, num_extra_cols);
 
 			std::getline(iss, line);
-			runtime_assert(num_features == INT32_MAX || num_features == int((line.size()) / 2));
+			runtime_assert(num_features == INT32_MAX || num_features == int((line.size()) / 2) || num_features == max_num_features);
 			if (num_features == INT32_MAX) { num_features = int((line.size()) / 2); }
+			num_features = std::min(num_features, max_num_features);
 			iss = std::istringstream(line);
 
 			std::vector<bool> v(num_features);

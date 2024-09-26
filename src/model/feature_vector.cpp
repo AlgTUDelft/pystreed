@@ -33,6 +33,7 @@ namespace STreeD {
 		for (int i = 0; i < fv.NumPresentFeatures(); i++) {
 			present_features_[i] = fv.present_features_[i];
 		}
+		present_feature_pair_indices_ = fv.present_feature_pair_indices_;
 	}
 
 	FeatureVector::~FeatureVector() {
@@ -75,12 +76,39 @@ namespace STreeD {
 			runtime_assert(cur <= num_features);
 			runtime_assert(prev < cur);
 			runtime_assert(is_feature_present_[cur]);
+			prev = cur;
 		}
 		int count = 0;
 		for(int i=0; i<num_features; i++) {
 			if(is_feature_present_[i]) count++;
 		}
 		runtime_assert(count == num_present_features);
+		if (IsFeaturePresent(f)) {
+			runtime_assert(std::find(present_features_, present_features_ + num_present_features, f) != present_features_ + num_present_features);
+		} else {
+			runtime_assert(std::find(present_features_, present_features_ + num_present_features, f) == present_features_ + num_present_features);
+		}
+	}
+
+	void FeatureVector::DisableFeature(int f) {
+		if (IsFeaturePresent(f)) {
+			FlipFeature(f);
+		}
+	}
+
+	void FeatureVector::ComputeFeaturePairIndices() {
+		int num_feature_pair_indices = num_present_features * (num_present_features + 1) / 2;
+		present_feature_pair_indices_.resize(num_feature_pair_indices);
+		int pair_ix = 0;
+		for (int i = 0; i < num_present_features; i++) {
+			const int feature1 = GetJthPresentFeature(i);
+			for (int j = i; j < num_present_features; j++) {
+				const int feature2 = GetJthPresentFeature(j);
+				int index = num_features * feature1 + feature2 - feature1 * (feature1 + 1) / 2;
+				runtime_assert(pair_ix < num_feature_pair_indices);
+				present_feature_pair_indices_[pair_ix++] = index;
+			}
+		}
 	}
 
 	std::ostream& operator<<(std::ostream& os, const FeatureVector& fv) {

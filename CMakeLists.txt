@@ -19,6 +19,8 @@ else()
 	add_compile_definitions(DEBUG=1)
 	if (MSVC)
 	  add_compile_options(/bigobj)
+	elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+		
 	else ()
 	  add_compile_options(-Wa,-mbig-obj)
 	endif ()
@@ -37,6 +39,7 @@ set(STREED_HEADER_FILES
 	${PROJECT_INCLUDE_DIR}/utils/file_reader.h
 	${PROJECT_INCLUDE_DIR}/utils/key_value_heap.h
 	${PROJECT_INCLUDE_DIR}/utils/dynamic_bitset.h
+	${PROJECT_INCLUDE_DIR}/utils/utils.h
 	
 	${PROJECT_INCLUDE_DIR}/model/data.h
 	${PROJECT_INCLUDE_DIR}/model/feature_vector.h
