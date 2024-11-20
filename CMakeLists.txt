@@ -22,7 +22,7 @@ else()
 	elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
 		
 	else ()
-	  add_compile_options(-Wa,-mbig-obj)
+	  #add_compile_options(-Wa,-mbig-obj)
 	endif ()
 endif()
 

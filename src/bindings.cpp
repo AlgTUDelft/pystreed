@@ -207,22 +207,18 @@ PYBIND11_MODULE(cstreed, m) {
     solver_result.def("is_feasible", &SolverResult::IsFeasible);
 
     solver_result.def("is_optimal", [](const SolverResult &solver_result) {
-        py::scoped_ostream_redirect stream(std::cout, py::module_::import("sys").attr("stdout"));
         return solver_result.IsProvenOptimal();
     });
 
     solver_result.def("score", [](const SolverResult &solver_result) {
-        py::scoped_ostream_redirect stream(std::cout, py::module_::import("sys").attr("stdout"));
         return solver_result.scores[solver_result.best_index]->score;
     });
 
     solver_result.def("tree_depth", [](const SolverResult &solver_result) {
-        py::scoped_ostream_redirect stream(std::cout, py::module_::import("sys").attr("stdout"));
         return solver_result.GetBestDepth();
     });
 
     solver_result.def("tree_nodes", [](const SolverResult &solver_result) {
-        py::scoped_ostream_redirect stream(std::cout, py::module_::import("sys").attr("stdout"));
         return solver_result.GetBestNodeCount();
     });
 
@@ -231,11 +227,7 @@ PYBIND11_MODULE(cstreed, m) {
            ParameterHandler
      ************************************/
     py::class_<ParameterHandler> parameter_handler(m, "ParameterHandler");
-
-    parameter_handler.def(py::init([]() {
-        ParameterHandler parameters = ParameterHandler::DefineParameters();
-        return new ParameterHandler(parameters);
-    }), py::keep_alive<0, 1>());
+    parameter_handler.def(py::init(&ParameterHandler::DefineParameters));
     parameter_handler.def("check_parameters", &ParameterHandler::CheckParameters);
     ExposeStringProperty(parameter_handler, "task", "optimization_task");
     ExposeBooleanProperty(parameter_handler, "hyper-tune", "hyper_tune");
@@ -263,6 +255,13 @@ PYBIND11_MODULE(cstreed, m) {
     ExposeStringProperty(parameter_handler, "regression-bound", "regression_lower_bound");
     ExposeFloatProperty(parameter_handler, "discrimination-limit", "discrimination_limit");
     
+
+    /*************************************
+           RandomEngine
+     ************************************/
+    py::class_<std::default_random_engine> random_engine(m, "RandomEngine");
+    random_engine.def(py::init<uint_fast32_t>());
+
     /*************************************
            Solver
      ************************************/
@@ -284,20 +283,12 @@ PYBIND11_MODULE(cstreed, m) {
         solver.GetTask()->UpdateCostSpecifier(cost_specifier);
     });
 
-    m.def("initialize_streed_solver", [](ParameterHandler& parameters) {
+    m.def("initialize_streed_solver", [](ParameterHandler& parameters, std::default_random_engine& rng) {
         py::scoped_ostream_redirect stream(std::cout, py::module_::import("sys").attr("stdout"));
 
-        // Create random engine
-        std::default_random_engine rng;
-	    if (parameters.GetIntegerParameter("random-seed") == -1) { 
-		    rng = std::default_random_engine(int(time(0)));
-	    } else { 
-		    rng = std::default_random_engine(int(parameters.GetIntegerParameter("random-seed")));
-	    }
-
         parameters.CheckParameters();
-	    bool verbose = parameters.GetBooleanParameter("verbose");
-
+        bool verbose = parameters.GetBooleanParameter("verbose");
+        
         STreeD::AbstractSolver* solver;
         std::string task = parameters.GetStringParameter("task");
         switch(get_task_type_code(task)) {

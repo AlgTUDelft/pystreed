@@ -1,7 +1,7 @@
 from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.base import BaseEstimator
 from sklearn.utils.validation import check_array, check_is_fitted
-from .cstreed import initialize_streed_solver, ParameterHandler
+from .cstreed import initialize_streed_solver, ParameterHandler, RandomEngine
 from pystreed.binarizer import Binarizer
 from pystreed.utils import _dynamic_float_formatter
 from typing import Optional
@@ -10,6 +10,7 @@ import warnings
 import math
 import numbers
 import sys
+import time
 
 class BaseSTreeDSolver(BaseEstimator):
 
@@ -265,7 +266,11 @@ class BaseSTreeDSolver(BaseEstimator):
 
         if self._should_reset_solver(X, y, extra_data):
             self._initialize_param_handler()
-            self._solver = initialize_streed_solver(self._params)
+            if self.random_seed == -1:
+                self._random_engine = RandomEngine(int(time.time()))
+            else:
+                self._random_engine = RandomEngine(int(self.random_seed))
+            self._solver = initialize_streed_solver(self._params, self._random_engine)
         else:
             self._initialize_param_handler()
             self._solver._update_parameters(self._params)
