@@ -1,0 +1,5 @@
+# Include everything in the include folder
+recursive-include include *
+
+# Include everything in the test folder
+recursive-include test *
