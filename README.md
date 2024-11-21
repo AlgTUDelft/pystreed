@@ -256,4 +256,3 @@ This work also incorporates ideas from the following papers (with their correspo
 
 4. Hu, Xiyang, Cynthia Rudin, and Margo Seltzer. "Optimal sparse decision trees." _Advances in Neural Information Processing Systems_ (2019). [pdf](https://proceedings.neurips.cc/paper_files/paper/2019/file/ac52c626afc10d4075708ac4c778ddfc-Paper.pdf) / [source](https://github.com/xiyanghu/OSDT)
 5. Lin, Jimmy, et al. "Generalized and scalable optimal sparse decision trees." _International Conference on Machine Learning_ (2020). [pdf](https://proceedings.mlr.press/v119/lin20g/lin20g.pdf) / [source](https://github.com/Jimmy-Lin/GeneralizedOptimalSparseDecisionTrees)
-6. Chaouki, Ayman, Jesse Read, and Albert Bifet. "Branches: A Fast Dynamic Programming and Branch & Bound Algorithm for Optimal Decision Trees." _arXiv preprint arXiv:2406.02175_ (2024). [pdf](https://arxiv.org/pdf/2406.02175) / [source](https://github.com/Chaoukia/branches)

@@ -637,10 +637,12 @@ namespace STreeD {
 			    }
 			}
 
-			// Apply the purification bound
-			// Chaouki, A., Read, J., & Bifet, A. (2024). Branches: A Fast Dynamic Programming and Branch 
-			// & Bound Algorithm for Optimal Decision Trees. arXiv preprint arXiv:2406.02175.
 			if constexpr (Solver<OT>::sparse_objective) {
+				// If the search space up to depth d is fully exhausted, then any improving tree must have at least d+1 nodes
+				// Therefore, apply a lower bound of (d+1) * branching_costs
+				// This is similar to the hierarchical lower bound prestend by Lin et al., "Generalized and Scalable 
+				// Optimal Sparse Decision Trees," ICML-20.
+
 				auto branching_costs = GetBranchingCosts(data, context, 0); // Constant branching costs, so the feature does not matter
 			    auto solutions = InitializeSol<OT>(false);
 				if (!OT::expensive_leaf) {
@@ -661,9 +663,11 @@ namespace STreeD {
 				int min_nodes_to_use = max_depth_searched + 1;
 				
 				if (solutions.solution <= min_nodes_to_use * branching_costs + custom_lb.solution) {
-					// The leaf is cheaper than any split, so add it as a LB
+					// The previous solution is cheaper than splitting on at least min_nodes_to_use, so its a LB
 					AddSolsInv<OT>(lb, solutions);
 				} else {
+					// The previous solution is worse than splitting on at least min_nodes_to_use, so use the minimum
+					// number of nodes as the lower bound.
 					Node<OT> split_lb(0, min_nodes_to_use * branching_costs + custom_lb.solution, solutions.num_nodes_left, solutions.num_nodes_right);
 					AddSolsInv<OT>(lb, split_lb);
 				}
