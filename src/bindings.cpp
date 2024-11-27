@@ -214,6 +214,11 @@ PYBIND11_MODULE(cstreed, m) {
         return solver_result.scores[solver_result.best_index]->score;
     });
 
+    solver_result.def("question_length", [](const SolverResult& solver_result) {
+        return solver_result.scores[solver_result.best_index]->average_path_length;
+    });
+
+
     solver_result.def("tree_depth", [](const SolverResult &solver_result) {
         return solver_result.GetBestDepth();
     });

@@ -336,6 +336,28 @@ class BaseSTreeDSolver(BaseEstimator):
         extra_data = self._process_extra_data(X, extra_data)
         self.test_result = self._solver._test_performance(self.fit_result, X, y_true, extra_data)
         return self.test_result.score()
+    
+    def get_question_length(self, X, y_true, extra_data=None):
+        """
+        Computes the average question length for the given input feature data
+
+        Args:
+            x : array-like, shape = (n_samples, n_features)
+            Data matrix
+            y_true : array-like, shape = (n_samples)
+            The true labels
+            extra_data : array-like, shape = (n_samples)
+            Extra data (if required)
+
+        Returns:
+            The question length
+        """
+        check_is_fitted(self, "fit_result")
+        X = self._binarize_data(X, reset=False)
+        X, y_true = self._process_score_data(X, y_true)
+        extra_data = self._process_extra_data(X, extra_data)
+        self.test_result = self._solver._test_performance(self.fit_result, X, y_true, extra_data)
+        return self.test_result.question_length()
 
     def get_n_leaves(self):
         """
