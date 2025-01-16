@@ -1,5 +1,6 @@
 from pystreed import STreeDClassifier
 import pandas as pd
+import time
 from warnings import simplefilter
 simplefilter(action='ignore', category=UserWarning)
 
@@ -10,22 +11,23 @@ X = df[df.columns[1:]].values
 y = df[0].values
 
 # Fit the model
-for max_depth in range(0, 5):
-    model = STreeDClassifier(max_depth = max_depth, upper_bound=0, time_limit=100, verbose=False)
-    model.fit(X,y)
-    if model.is_fitted(): break
-    print(f"No perfect tree for d = {max_depth}")
+max_depth = 20
+model = STreeDClassifier("cost-complex-accuracy", max_depth = max_depth, cost_complexity = 1.0 / (max_depth*len(df)), time_limit=100, verbose=False)
+start = time.perf_counter()
+model.fit(X,y)
+duration = time.perf_counter() - start
 
+# repor the score
+accuracy = model.score(X,y)
+depth = model.get_depth()
+num_nodes = model.get_n_leaves() - 1
 
-for max_num_nodes in range(0, 2**max_depth):
-    model = STreeDClassifier(max_depth = max_depth, max_num_nodes=max_num_nodes, upper_bound=0, time_limit=100, verbose=False)
-    model.fit(X,y)
-    if model.is_fitted(): break
-    print(f"No perfect tree for d = {max_depth}, n = {max_num_nodes}")
+if accuracy == 1.0:
+    print(f"\nSmallest perfect tree with d = {depth}, n = {num_nodes} in {duration:.2f} seconds")
+else:
+    print(f"\nFound tree with accuracy = {accuracy*100}% misclassifications with d = {depth}, n = {num_nodes} in {duration:.2f} seconds")
 
-
-print(f"\nSmallest perfect tree with d = {max_depth}, n = {max_num_nodes}")
-
+# print the tree
 print("")
-
 model.print_tree()
+
