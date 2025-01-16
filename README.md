@@ -233,6 +233,9 @@ Note that STreeD provides an optimal decision tree for the given binarization. T
 
 See [examples/binarize_example.py](examples/binarize_example.py) for an example.
 
+See also our latest paper on optimizing trees with continuous features:
+* Briţa, Cătălin E., Jacobus G. M. van der Linden, and Emir Demirović. "Optimal Classification Trees for Continuous Feature Data Using Dynamic Programming with Branch-and-Bound." In _Proceedings of AAAI-25_ (2025). [pdf](https://arxiv.org/pdf/2501.07903) / [source](https://github.com/consol-Lab/contree)
+
 ## Overfitting and tuning
 
 To prevent overfitting the size of the tree can be tuned. This can be done in the standard way using `scikit-learn` methods, see [examples/gridsearch_example.py](examples/gridsearch_example.py). 

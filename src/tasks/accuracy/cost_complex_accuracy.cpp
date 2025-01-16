@@ -165,6 +165,7 @@ namespace STreeD {
 			alphas.push_back(base_alpha * a);
 		for(double alpha = 100*base_alpha; alpha < 0.01; alpha += 0.001)
 			alphas.push_back(alpha);
+		std::sort(alphas.begin(), alphas.end(), std::greater<>());
 		for (auto a: alphas) {
 			if (a > 0.1) continue;
 			ParameterHandler params = default_config;

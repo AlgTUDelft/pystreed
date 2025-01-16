@@ -902,10 +902,11 @@ namespace STreeD {
 	}
 
 	template <class OT>
-	std::shared_ptr<SolverResult> Solver<OT>::HyperSolve(const ADataView& train_data) {
+	std::shared_ptr<SolverResult> Solver<OT>::HyperSolve(const ADataView& _train_data) {
 		using ScoreType = std::shared_ptr<Score>;
 		runtime_assert(parameters.GetBooleanParameter("hyper-tune"));
 		stopwatch.Initialise(parameters.GetFloatParameter("time"));
+		InitializeSolver(_train_data);
 
 		bool verbose = parameters.GetBooleanParameter("verbose");
 		const int max_num_nodes = int(parameters.GetIntegerParameter("max-num-nodes"));
@@ -929,6 +930,7 @@ namespace STreeD {
 				Solver<OT> solver(parameters, rng);
 				solver.solver_parameters.verbose = false;
 				solver.redundant_features = redundant_features;
+				solver.task->CopyTaskInfoFrom(this->task);
 				//ADataView::TrainTestSplitData<typename OT::LabelType>(train_data, sub_train_data, sub_test_data, rng, validation_percentage, true);
 				ADataView& sub_train_data = sub_train_datas[r], &sub_test_data = sub_test_datas[r];
 				solver.InitializeSolver(sub_train_data); // Initialize with max-depth

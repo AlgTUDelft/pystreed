@@ -72,6 +72,7 @@ namespace STreeD {
 
 		// Inform the OT on updated parameters (when hypertuning)
 		inline void UpdateParameters(const ParameterHandler& parameters) { return; }
+		inline void CopyTaskInfoFrom(const OptimizationTask* task) {}
 
 		// Addition and subtraction functions
 		inline static int Add(const int left, const int right) { return left + right; }

@@ -127,10 +127,6 @@ namespace STreeD {
 		return max;
 	}
 
-	CostSensitive::CostSensitive(const ParameterHandler& parameters) : Classification(parameters) {
-		cost_filename = parameters.GetStringParameter("cost-file");
-	}
-
 	void CostSensitive::InformTrainData(const ADataView& train_data, const DataSummary& train_summary) {
 		OptimizationTask::InformTrainData(train_data, train_summary);
 		runtime_assert(cost_filename != "" || cost_specifier.IsInitialized());

@@ -51,7 +51,13 @@ namespace STreeD {
 		static const int worst = INT32_MAX;
 		static const int best = 0;
 
-		CostSensitive(const ParameterHandler& parameters);
+		CostSensitive(const ParameterHandler& parameters) : Classification(parameters) { UpdateParameters(parameters); }
+		inline void UpdateParameters(const ParameterHandler& parameters) {
+			cost_filename = parameters.GetStringParameter("cost-file");
+		}
+		inline void CopyTaskInfoFrom(const OptimizationTask* task) {
+			UpdateCostSpecifier(static_cast<const CostSensitive*>(task)->cost_specifier);
+		}
 		void InformTrainData(const ADataView& train_data, const DataSummary& train_summary);
 		void UpdateCostSpecifier(const CostSpecifier& cost_specifier) { this->cost_specifier = cost_specifier; }
 
