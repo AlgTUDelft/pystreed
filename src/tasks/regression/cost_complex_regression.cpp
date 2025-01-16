@@ -32,6 +32,7 @@ namespace STreeD {
 				yy += label * label;
 				if (id == 0 || !prev->GetFeatures().HasEqualFeatures(i->GetFeatures())) {
 					unique_feature_vector_id++;
+					prev = i;
 				}
 				reg_i->GetMutableExtraData().unique_feature_vector_id = unique_feature_vector_id;
 				i->SetID(id++);

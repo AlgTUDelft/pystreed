@@ -22,6 +22,7 @@ namespace STreeD {
 				auto cca_i = static_cast<Instance<int, CCAccExtraData>*>(i);
 				if (id == 0 || !prev->GetFeatures().HasEqualFeatures(i->GetFeatures())) {
 					unique_feature_vector_id++;
+					prev = i;
 				}
 				cca_i->GetMutableExtraData().unique_feature_vector_id = unique_feature_vector_id;
 				i->SetID(id++);
