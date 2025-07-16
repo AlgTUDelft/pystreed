@@ -43,6 +43,7 @@ jobs:
 
     - uses: pypa/cibuildwheel@v2.16.5
       env:
+        CIBW_SKIP: "pp38-* pp39-*"
         CIBW_ARCHS_MACOS: auto universal2
         CIBW_PRERELEASE_PYTHONS: true
 
