@@ -5,6 +5,7 @@ from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.utils.validation import _check_feature_names_in, check_array, check_is_fitted
 from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.model_selection import GridSearchCV
 import sklearn
 import numbers
@@ -38,7 +39,7 @@ def _escape(obj):
 
 class Binarizer:
 
-    def __init__(self, continuous_strategy, n_thresholds, n_categories, categorical_columns):
+    def __init__(self, continuous_strategy, n_thresholds, n_categories, categorical_columns, max_num_binary_features = None):
         """
         Initialize a binarizer
 
@@ -51,11 +52,13 @@ class Binarizer:
         self.continuous_strategy = continuous_strategy
         self.n_thresholds = n_thresholds
         self.n_categories = n_categories
+        self.max_num_binary_features = max_num_binary_features
         self.categorical_columns = [] if categorical_columns is None else categorical_columns
         self.binary_columns = []
         self.continuous_columns = []
         self.categorical_binarizer = None
         self.continuous_binarizer = None
+        self.binary_feature_limiter = None
 
     def fit(self, X, y):
         X_cat = None
@@ -83,6 +86,14 @@ class Binarizer:
         if len(self.continuous_columns) > 0:
             self.continuous_binarizer = KThresholdBinarizer(self.continuous_strategy, self.n_thresholds)
             self.continuous_binarizer.fit(X_cont, y)
+
+        if not self.max_num_binary_features is None:
+            if y is None:
+                warnings.warn("Cannot limit the number of binary features, because the class label y is None")
+                return
+            X_trans = self.transform(X)
+            self.binary_feature_limiter = RandomForestFeatureSelector(self.max_num_binary_features)
+            self.binary_feature_limiter.fit(X_trans, y)
 
     def transform(self, X):
         parts = []
@@ -115,8 +126,12 @@ class Binarizer:
         if isinstance(X, pd.DataFrame):
             for p in parts:
                 p.index = X.index
-            return pd.concat(parts, axis=1)
-        return np.concatenate(parts, axis=1)
+            X_trans = pd.concat(parts, axis=1)
+        else:
+            X_trans = np.concatenate(parts, axis=1)
+        if not self.binary_feature_limiter is None:
+            return self.binary_feature_limiter.transform(X_trans)
+        return X_trans
 
 class CategoricalBinarizer(BaseEstimator, TransformerMixin):
 
@@ -348,3 +363,27 @@ class KThresholdBinarizer(BaseEstimator, TransformerMixin):
         column_names = itertools.chain.from_iterable(self.column_names_)
         return pd.DataFrame(bin_X, columns=column_names)
     
+class RandomForestFeatureSelector(BaseEstimator, TransformerMixin):
+    
+    def __init__(self, max_num_binary_features : int):
+        self.max_num_binary_features = max_num_binary_features
+
+    def fit(self, X, y):
+        is_classification = issubclass(y.dtype.type, np.integer) and len(np.unique(y)) <= 10
+        rf_model = RandomForestClassifier if is_classification else RandomForestRegressor
+        rf = rf_model(n_estimators=100)
+        rf.fit(X, y)
+        importances = rf.feature_importances_        
+        indices = np.argsort(importances)[-self.max_num_binary_features:]
+
+        if isinstance(X, pd.DataFrame):
+            self.select_features_ = X.columns[indices]
+        else:
+            self.select_features_ = indices
+
+    def transform(self, X):
+        check_is_fitted(self, "select_features_")
+        if isinstance(X, pd.DataFrame):
+            return X[self.select_features_]
+        else:
+            return X[:, self.select_features_]

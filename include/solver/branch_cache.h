@@ -31,8 +31,12 @@ namespace STreeD {
 		void UpdateLowerBound(ADataView&, const Branch& branch, const SolContainer& lower_bound, int depth, int num_nodes);
 		SolContainer RetrieveLowerBound(ADataView&, const Branch& branch, int depth, int num_nodes);
 
+		int GetMaxDepthSearched(ADataView&, const Branch& branch);
+		void UpdateMaxDepthSearched(ADataView& data, const Branch& branch, int depth);
+
 		//misc
 		int NumEntries() const;
+		
 
 	private:
 		

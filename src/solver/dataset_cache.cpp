@@ -48,6 +48,7 @@ namespace STreeD {
 		//if the branch has never been seen before, create a new entry for it
 		if (iter_vector_entry == hashmap.end()) {
 			CacheEntryVector<OT> vector_entry;
+			vector_entry.UpdateMaxDepthSearched(depth);
 			for (int node_budget = sol_num_nodes; node_budget <= num_nodes; node_budget++) {
 				for (int depth_budget = optimal_node_depth; depth_budget <= std::min(depth, node_budget); depth_budget++) {
 					vector_entry.push_back({ depth_budget, node_budget, optimal_solutions });
@@ -56,6 +57,7 @@ namespace STreeD {
 			cache[data.Size()].insert(std::pair<ADataViewBitSet, CacheEntryVector<OT> >(bitsetview, vector_entry));
 			InvalidateStoredIterators(bitsetview);
 		} else {
+			iter_vector_entry->second.UpdateMaxDepthSearched(depth);
 			//this sol is valid for size=[opt.NumNodes, num_nodes] and depths d=min(size, depth)
 
 			//now we need to see if other node budgets have been seen before. 
@@ -194,6 +196,26 @@ namespace STreeD {
 	}
 
 	template <class OT>
+	int DatasetCache<OT>::GetMaxDepthSearched(ADataView& data, const Branch& branch) {
+		auto& hashmap = cache[data.Size()];
+		auto& bitsetview = data.GetBitSetView();
+		auto iter = FindIterator(bitsetview, branch);// hashmap.find(data);
+
+		if (iter == hashmap.end()) { return 0; }
+		return iter->second.GetMaxDepthSearched();
+	}
+
+	template <class OT>
+	void DatasetCache<OT>::UpdateMaxDepthSearched(ADataView& data, const Branch& branch, int depth) {
+		auto& hashmap = cache[data.Size()];
+		auto& bitsetview = data.GetBitSetView();
+		auto iter = FindIterator(bitsetview, branch);// hashmap.find(data);
+
+		if (iter == hashmap.end()) { return; }
+		iter->second.UpdateMaxDepthSearched(depth);
+	}
+
+	template <class OT>
 	int DatasetCache<OT>::NumEntries() const {
 		size_t count = 0;
 		for (auto& c : cache) {
@@ -229,6 +251,7 @@ namespace STreeD {
 
 	template class DatasetCache<Accuracy>;
 	template class DatasetCache<CostComplexAccuracy>;
+	template class DatasetCache<BalancedAccuracy>;
 
 	template class DatasetCache<Regression>;
 	template class DatasetCache<CostComplexRegression>;

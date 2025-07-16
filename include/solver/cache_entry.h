@@ -74,7 +74,10 @@ namespace STreeD {
 		void push_back(const CacheEntry<OT>& entry) { entries.push_back(entry); }
 		CacheEntry<OT>& operator[](size_t idx) { return entries[idx]; }
 
-		bool exhausted{ false };
+		void UpdateMaxDepthSearched(int max_depth) { max_depth_searched = std::max(max_depth_searched, max_depth); }
+		int GetMaxDepthSearched() const { return max_depth_searched; }
+
+		int max_depth_searched{ 0 };
 		std::vector<CacheEntry<OT>> entries;
 	};
 }

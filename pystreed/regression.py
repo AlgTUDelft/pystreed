@@ -1,6 +1,7 @@
 from pystreed.base import BaseSTreeDSolver
 from pystreed.data import ContinuousFeatureData, SimpleContinuousFeatureData
 from pystreed.binarizer import get_column_types
+from sklearn.base import RegressorMixin
 from sklearn.utils.validation import check_is_fitted
 from sklearn.utils._param_validation import Interval, StrOptions
 from typing import Optional
@@ -10,9 +11,10 @@ import numbers
 from pathlib import Path
 import os
 
-class STreeDRegressor(BaseSTreeDSolver):
+class STreeDRegressor(BaseSTreeDSolver, RegressorMixin):
 
     _parameter_constraints: dict = {**BaseSTreeDSolver._parameter_constraints, 
+        "feature_ordering": [StrOptions({"in-order", "mse"})],
         "regression_lower_bound": [StrOptions({"equivalent", "kmeans"})]
     }
 
@@ -22,6 +24,7 @@ class STreeDRegressor(BaseSTreeDSolver):
                  max_num_nodes : Optional[int] = None,
                  min_leaf_node_size : int = 1,
                  time_limit : float = 600,
+                 feature_ordering : str = "mse", 
                  hyper_tune : bool = False,
                  cost_complexity : float = 0.01,
                  regression_lower_bound : str = "kmeans",
@@ -37,7 +40,8 @@ class STreeDRegressor(BaseSTreeDSolver):
                  random_seed: int = 27, 
                  continuous_binarize_strategy: str = 'quantile',
                  n_thresholds: int = 5,
-                 n_categories: int = 5):
+                 n_categories: int = 5,
+                 max_num_binary_features: int = None):
         """
         Construct a STreedRegressor
 
@@ -47,6 +51,7 @@ class STreeDRegressor(BaseSTreeDSolver):
             max_num_nodes: the maximum number of branching nodes of the tree
             min_leaf_node_size: the minimum number of training instance that should end up in every leaf node
             time_limit: the time limit in seconds for fitting the tree
+            feature_ordering: heuristic for the order that features are checked. Default: "mse", alternative: "in-order": the order in the given data            
             hyper_tune: Use five-fold validation to tune the size of the tree to prevent overfitting
             cost_complexity: the cost of adding a branch node, expressed as a percentage. E.g., 0.01 means a branching node may be added if it increases the training accuracy by at least 1%.
                 only used when optimization_task == "cost-complex-regression'
@@ -64,6 +69,7 @@ class STreeDRegressor(BaseSTreeDSolver):
             continuous_binarization_strategy: the strategy used for binarizing continuous features
             n_thresholds: the number of thresholds to use per continuous feature
             n_categories: the number of categories to use per categorical feature
+            max_num_binary_features: the maximum number of binary features (selected by random forest feature importance)
         """
         self._extra_permitted_params = ["regression_lower_bound"]
         if not optimization_task in ["regression", "cost-complex-regression"]:
@@ -74,7 +80,7 @@ class STreeDRegressor(BaseSTreeDSolver):
             min_leaf_node_size=min_leaf_node_size,
             time_limit=time_limit,
             cost_complexity=cost_complexity,
-            feature_ordering="in-order",
+            feature_ordering=feature_ordering,
             hyper_tune = hyper_tune,
             use_branch_caching=use_branch_caching,
             use_dataset_caching=use_dataset_caching,
@@ -87,7 +93,8 @@ class STreeDRegressor(BaseSTreeDSolver):
             random_seed=random_seed,
             continuous_binarize_strategy=continuous_binarize_strategy,
             n_thresholds=n_thresholds,
-            n_categories=n_categories)
+            n_categories=n_categories,
+            max_num_binary_features=max_num_binary_features)
         self._label_type = np.double
         self.regression_lower_bound = regression_lower_bound
         self.use_task_lower_bound = use_task_lower_bound
@@ -111,6 +118,7 @@ class STreeDPiecewiseLinearRegressor(BaseSTreeDSolver):
                  max_num_nodes : Optional[int] = None,
                  min_leaf_node_size : int = 1,
                  time_limit : float = 600,
+                 feature_ordering : str = "mse", 
                  hyper_tune : bool = False,
                  cost_complexity : float = 0.01,
                  lasso_penalty : float = 0.0,
@@ -125,7 +133,8 @@ class STreeDPiecewiseLinearRegressor(BaseSTreeDSolver):
                  random_seed: int = 27, 
                  continuous_binarize_strategy: str = 'quantile',
                  n_thresholds: int = 5,
-                 n_categories: int = 5):
+                 n_categories: int = 5,
+                 max_num_binary_features: int = None):
         """
         Construct a STreeDPiecewiseLinearRegressor
 
@@ -135,6 +144,7 @@ class STreeDPiecewiseLinearRegressor(BaseSTreeDSolver):
             max_num_nodes: the maximum number of branching nodes of the tree
             min_leaf_node_size: the minimum number of training instance that should end up in every leaf node
             time_limit: the time limit in seconds for fitting the tree
+            feature_ordering: heuristic for the order that features are checked. Default: "mse", alternative: "in-order": the order in the given data            
             hyper_tune: Use five-fold validation to tune the size of the tree to prevent overfitting
             cost_complexity: the cost of adding a branch node, expressed as a percentage. E.g., 0.01 means a branching node may be added if it increases the training accuracy by at least 1%.
             lasso_penalty: the amount of lasso penalization used in each leaf node
@@ -150,6 +160,7 @@ class STreeDPiecewiseLinearRegressor(BaseSTreeDSolver):
             continuous_binarization_strategy: the strategy used for binarizing continuous features
             n_thresholds: the number of thresholds to use per continuous feature
             n_categories: the number of categories to use per categorical feature
+            max_num_binary_features: the maximum number of binary features (selected by random forest feature importance)
         """
         BaseSTreeDSolver.__init__(self, "simple-linear-regression" if simple else "piecewise-linear-regression",
             max_depth=max_depth,
@@ -157,7 +168,7 @@ class STreeDPiecewiseLinearRegressor(BaseSTreeDSolver):
             min_leaf_node_size=min_leaf_node_size,
             time_limit=time_limit,
             cost_complexity=cost_complexity,
-            feature_ordering="in-order",
+            feature_ordering=feature_ordering,
             hyper_tune = hyper_tune,
             use_branch_caching=use_branch_caching,
             use_dataset_caching=use_dataset_caching,
@@ -170,7 +181,8 @@ class STreeDPiecewiseLinearRegressor(BaseSTreeDSolver):
             random_seed=random_seed,
             continuous_binarize_strategy=continuous_binarize_strategy,
             n_thresholds=n_thresholds,
-            n_categories=n_categories)
+            n_categories=n_categories,
+            max_num_binary_features=max_num_binary_features)
         self.simple = simple
         self._label_type = np.double
         self.label_name_ = None

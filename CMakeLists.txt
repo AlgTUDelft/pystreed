@@ -78,6 +78,7 @@ set(STREED_HEADER_FILES
 
 	${PROJECT_INCLUDE_DIR}/tasks/accuracy/accuracy.h
 	${PROJECT_INCLUDE_DIR}/tasks/accuracy/cost_complex_accuracy.h
+	${PROJECT_INCLUDE_DIR}/tasks/accuracy/balanced_accuracy.h
 
 	${PROJECT_INCLUDE_DIR}/tasks/regression/regression.h
 	${PROJECT_INCLUDE_DIR}/tasks/regression/cost_complex_regression.h
@@ -100,6 +101,7 @@ set(STREED_SRC_FILES
 	${PROJECT_SOURCE_DIR}/model/branch.cpp
 
 	${PROJECT_SOURCE_DIR}/solver/feature_selector_gini.cpp
+	${PROJECT_SOURCE_DIR}/solver/feature_selector_mse.cpp
 	${PROJECT_SOURCE_DIR}/solver/define_parameters.cpp
 	${PROJECT_SOURCE_DIR}/solver/solver.cpp
 	${PROJECT_SOURCE_DIR}/solver/cache.cpp
@@ -125,6 +127,7 @@ set(STREED_SRC_FILES
 
 	${PROJECT_SOURCE_DIR}/tasks/accuracy/accuracy.cpp
 	${PROJECT_SOURCE_DIR}/tasks/accuracy/cost_complex_accuracy.cpp
+	${PROJECT_SOURCE_DIR}/tasks/accuracy/balanced_accuracy.cpp
 
 	${PROJECT_SOURCE_DIR}/tasks/regression/regression.cpp
 	${PROJECT_SOURCE_DIR}/tasks/regression/cost_complex_regression.cpp

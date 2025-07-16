@@ -499,6 +499,7 @@ namespace STreeD {
 
 	template class TerminalSolver<Accuracy>;
 	template class TerminalSolver<CostComplexAccuracy>;
+	template class TerminalSolver<BalancedAccuracy>;
 
 	template class TerminalSolver<Regression>;
 	template class TerminalSolver<CostComplexRegression>;

@@ -39,6 +39,7 @@ namespace STreeD {
 		bool use_upper_bounding{ true };
 		bool similarity_lb{ true };
 		bool cache_data_splits{ false };
+		bool use_lower_bound_early_stop{ true };
 		int minimum_leaf_node_size{ 1 };
 		size_t UB_LB_max_size{ 12 };
 	};
@@ -84,7 +85,9 @@ namespace STreeD {
 		DataSummary train_summary, test_summary;
 		DataSplitter data_splitter;
 		std::vector<int> feature_order;
+		
 		int max_depth_finished;
+		bool reconstructing;
 
 		Statistics stats;
 		Stopwatch stopwatch;
@@ -138,6 +141,11 @@ namespace STreeD {
 		void ResetCache();
 
 		/*
+		* Reset the cache (after going to a higher node/depth limit)
+		*/
+		void IncrementalResetCache();
+
+		/*
 		* Find the optimal tree for the given training data 
 		*/
 		std::shared_ptr<SolverResult> Solve(const ADataView& train_data);
@@ -167,7 +175,7 @@ namespace STreeD {
 		/*
 		* Apply a recursive step in the search for optimal trees: split on all possible features and retain all non-dominated solutions
 		*/
-		SolContainer SolveSubTreeGeneralCase(ADataView& data, const Context& context, SolContainer& UB, int max_depth, int num_nodes);
+		SolContainer SolveSubTreeGeneralCase(ADataView& data, const Context& context, SolContainer& UB, SolContainer& solutions, int max_depth, int num_nodes);
 
 		/*
 		* Solve a subtree using the special terminal solver 
@@ -202,7 +210,7 @@ namespace STreeD {
 		/*
 		* Compute a lower bound
 		*/
-		void ComputeLowerBound(ADataView& data, const Context& context, SolContainer& lb_out, int depth, int num_nodes);
+		void ComputeLowerBound(ADataView& data, const Context& context, SolContainer& lb_out, int depth, int num_nodes, bool root_is_branching_node);
 
 		/*
 		* Compute a lower bound from the combination of the left and right lower bound
@@ -228,6 +236,11 @@ namespace STreeD {
 		* Update the upper bound
 		*/
 		void UpdateUB(const Context& context, SolContainer& UB, Node<OT> sol) const;
+
+		/*
+		* Get the weight of a data set
+		*/
+		int GetDataWeight(const ADataView& data) const;
 
 		/*
 		* Check the minimum leaf node size

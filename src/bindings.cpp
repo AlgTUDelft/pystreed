@@ -14,6 +14,7 @@ using namespace STreeD;
 enum task_type {
     accuracy,
     cost_complex_accuracy,
+    balanced_accuracy,
     regression,
     cost_complex_regression,
     spwl_regression,
@@ -30,6 +31,7 @@ enum task_type {
 task_type get_task_type_code(std::string& task) {
     if (task == "accuracy") return accuracy;
     else if (task == "cost-complex-accuracy") return cost_complex_accuracy;
+    else if (task == "balanced-accuracy") return balanced_accuracy;
     else if (task == "regression") return regression;
     else if (task == "cost-complex-regression") return cost_complex_regression;
     else if (task == "simple-linear-regression") return spwl_regression;
@@ -181,7 +183,7 @@ void ExposeStringProperty(py::class_<ParameterHandler>& parameter_handler, const
 void ExposeIntegerProperty(py::class_<ParameterHandler>& parameter_handler, const std::string& cpp_property_name, const std::string& py_property_name) {
     parameter_handler.def_property(py_property_name.c_str(), 
         [=](const ParameterHandler& p) { return p.GetIntegerParameter(cpp_property_name); },
-        [=](ParameterHandler& p, const int new_value) { return p.SetIntegerParameter(cpp_property_name, new_value); }); 
+        [=](ParameterHandler& p, const int64_t new_value) { return p.SetIntegerParameter(cpp_property_name, new_value); });
 }
 
 void ExposeBooleanProperty(py::class_<ParameterHandler>& parameter_handler, const std::string& cpp_property_name, const std::string& py_property_name) {
@@ -218,7 +220,6 @@ PYBIND11_MODULE(cstreed, m) {
         return solver_result.scores[solver_result.best_index]->average_path_length;
     });
 
-
     solver_result.def("tree_depth", [](const SolverResult &solver_result) {
         return solver_result.GetBestDepth();
     });
@@ -232,6 +233,7 @@ PYBIND11_MODULE(cstreed, m) {
            ParameterHandler
      ************************************/
     py::class_<ParameterHandler> parameter_handler(m, "ParameterHandler");
+
     parameter_handler.def(py::init(&ParameterHandler::DefineParameters));
     parameter_handler.def("check_parameters", &ParameterHandler::CheckParameters);
     ExposeStringProperty(parameter_handler, "task", "optimization_task");
@@ -260,19 +262,18 @@ PYBIND11_MODULE(cstreed, m) {
     ExposeStringProperty(parameter_handler, "regression-bound", "regression_lower_bound");
     ExposeFloatProperty(parameter_handler, "discrimination-limit", "discrimination_limit");
     
-
     /*************************************
            RandomEngine
      ************************************/
     py::class_<std::default_random_engine> random_engine(m, "RandomEngine");
     random_engine.def(py::init<uint_fast32_t>());
-
     /*************************************
            Solver
      ************************************/
 
     DefineSolver<Accuracy>(m, "Accuracy");
     DefineSolver<CostComplexAccuracy>(m, "CostComplexAccuracy");
+    DefineSolver<BalancedAccuracy>(m, "BalancedAccuracy");
     DefineSolver<F1Score>(m, "F1Score");
     DefineSolver<Regression>(m, "Regression");
     DefineSolver<CostComplexRegression>(m, "CostComplexRegression");
@@ -293,12 +294,13 @@ PYBIND11_MODULE(cstreed, m) {
 
         parameters.CheckParameters();
         bool verbose = parameters.GetBooleanParameter("verbose");
-        
+
         STreeD::AbstractSolver* solver;
         std::string task = parameters.GetStringParameter("task");
         switch(get_task_type_code(task)) {
             case accuracy: solver = new Solver<Accuracy>(parameters, &rng); break;
             case cost_complex_accuracy: solver = new Solver<CostComplexAccuracy>(parameters, &rng); break;
+            case balanced_accuracy: solver = new Solver<BalancedAccuracy>(parameters, &rng); break;
             case regression: solver = new Solver<Regression>(parameters, &rng); break;
             case cost_complex_regression: solver = new Solver<CostComplexRegression>(parameters, &rng); break;
             case spwl_regression: solver = new Solver<SimpleLinearRegression>(parameters, &rng); break;

@@ -498,6 +498,7 @@ namespace STreeD {
 
 	template class CostCalculator<Accuracy>;
 	template class CostCalculator<CostComplexAccuracy>;
+	template class CostCalculator<BalancedAccuracy>;
 
 	template class CostCalculator<Regression>;
 	template class CostCalculator<CostComplexRegression>;

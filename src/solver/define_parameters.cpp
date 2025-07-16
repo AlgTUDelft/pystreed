@@ -20,7 +20,7 @@ namespace STreeD {
 			"Task to optimize.",
 			"accuracy",
 			"Main Parameters",
-			{ "accuracy", "cost-complex-accuracy", 
+			{ "accuracy", "cost-complex-accuracy", "balanced-accuracy",
 			"f1-score", "group-fairness", "survival-analysis",
 			"regression", "cost-complex-regression", "piecewise-linear-regression",
 			"simple-linear-regression", "equality-of-opportunity", "cost-sensitive",
@@ -212,7 +212,7 @@ namespace STreeD {
 			"Feature ordering strategy used to determine the order in which features will be inspected in each node.",
 			"in-order", //default value
 			"Algorithmic Parameters",
-			{ "in-order", "gini" }
+			{ "in-order", "gini", "mse"}
 		);
 
 		parameters.DefineIntegerParameter
@@ -229,7 +229,7 @@ namespace STreeD {
 		(
 			"use-branch-caching",
 			"Use branch caching to store computed subtrees.",
-			false, //default value
+			true, //default value
 			"Algorithmic Parameters"
 		);
 
@@ -237,7 +237,7 @@ namespace STreeD {
 		(
 			"use-dataset-caching",
 			"Use dataset caching to store computed subtrees. Dataset-caching is more powerful than branch-caching but may required more computational time.",
-			true, //default value
+			false, //default value
 			"Algorithmic Parameters"
 		);
 

@@ -3,6 +3,7 @@
 
 #include "tasks/accuracy/accuracy.h"
 #include "tasks/accuracy/cost_complex_accuracy.h"
+#include "tasks/accuracy/balanced_accuracy.h"
 
 #include "tasks/regression/regression.h"
 #include "tasks/regression/cost_complex_regression.h"

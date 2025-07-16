@@ -1,10 +1,11 @@
 from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.base import BaseEstimator
 from sklearn.utils.validation import check_array, check_is_fitted
-from .cstreed import initialize_streed_solver, ParameterHandler, RandomEngine
+from .cstreed import initialize_streed_solver, ParameterHandler, SolverResult, RandomEngine
 from pystreed.binarizer import Binarizer
 from pystreed.utils import _dynamic_float_formatter
 from typing import Optional
+from typing_extensions import Self
 import numpy as np
 import warnings
 import math
@@ -15,7 +16,7 @@ import time
 class BaseSTreeDSolver(BaseEstimator):
 
     _parameter_constraints: dict = {
-        "optimization_task": [StrOptions({"accuracy", "cost-complex-accuracy", 
+        "optimization_task": [StrOptions({"accuracy", "cost-complex-accuracy", "balanced-accuracy", 
                                           "regression", "cost-complex-regression", 
                                           "piecewise-linear-regression", "simple-linear-regression",
                                           "cost-sensitive", "f1-score", "prescriptive-policy", "instance-cost-sensitive",
@@ -26,12 +27,13 @@ class BaseSTreeDSolver(BaseEstimator):
         "min_leaf_node_size": [Interval(numbers.Integral, 1, None, closed="left")],
         "time_limit": [Interval(numbers.Real, 0, None, closed="neither")],
         "cost_complexity": [Interval(numbers.Real, 0, 1, closed="both")],
-        "feature_ordering": [StrOptions({"in-order", "gini"})],
+        "feature_ordering": [StrOptions({"in-order", "gini", "mse"})],
         "upper_bound": [Interval(numbers.Real, 0, None, closed="left")],
         "random_seed": [Interval(numbers.Integral, -1, None, closed="left")],
         "n_thresholds": [Interval(numbers.Integral, 1, None, closed="left")],
         "n_categories": [Interval(numbers.Integral, 2, None, closed="left")],
         "continuous_binarize_strategy": [StrOptions({"tree", "quantile", "uniform"})],
+        "max_num_binary_features": [Interval(numbers.Integral, 1, None, closed="left"), None]
     }
 
     def __init__(self, 
@@ -55,7 +57,8 @@ class BaseSTreeDSolver(BaseEstimator):
             random_seed: int = 27, 
             continuous_binarize_strategy: str = 'quantile',
             n_thresholds: int = 5,
-            n_categories: int = 5):
+            n_categories: int = 5, 
+            max_num_binary_features: Optional[int] = None):
         """
         Construct a BaseSTreeDSolver
 
@@ -67,7 +70,7 @@ class BaseSTreeDSolver(BaseEstimator):
             min_leaf_node_size: the minimum number of training instance that should end up in every leaf node
             time_limit: the time limit in seconds for fitting the tree
             cost_complexity: the cost of adding a branch node, expressed as a percentage. E.g., 0.01 means a branching node may be added if it increases the training accuracy by at least 1%.
-            feature_ordering: heuristic for the order that features are checked. Default: "gini", alternative: "in-order": the order in the given data
+            feature_ordering: heuristic for the order that features are checked. Default: "gini", alternative: "in-order" or "mse": the order in the given data
             hyper_tune: Use five-fold validation to tune the size of the tree to prevent overfitting
             use_branch_caching: Enable/Disable branch caching (typically the slower caching strategy. May be faster in some scenario's)
             use_dataset_caching: Enable/Disable dataset caching (typically the faster caching strategy)
@@ -81,34 +84,36 @@ class BaseSTreeDSolver(BaseEstimator):
             continuous_binarization_strategy: the strategy used for binarizing continuous features
             n_thresholds: the number of thresholds to use per continuous feature
             n_categories: the number of categories to use per categorical feature
+            max_num_binary_features: the maximum number of binary features (selected by random forest feature importance)
         """
         
-        self.optimization_task = optimization_task
-        self.max_depth = max_depth
-        self.max_num_nodes = max_num_nodes
-        self.all_trees = all_trees
-        self.min_leaf_node_size = min_leaf_node_size
-        self.time_limit = time_limit
-        self.cost_complexity = cost_complexity
-        self.feature_ordering = feature_ordering
-        self.hyper_tune = hyper_tune
-        self.use_branch_caching = use_branch_caching
-        self.use_dataset_caching = use_dataset_caching
-        self.use_terminal_solver = use_terminal_solver
-        self.use_similarity_lower_bound = use_similarity_lower_bound
-        self.use_upper_bound = use_upper_bound
-        self.use_lower_bound = use_lower_bound
-        self.upper_bound = upper_bound
-        self.verbose = verbose
-        self.random_seed = random_seed
-        self.continuous_binarize_strategy = continuous_binarize_strategy
-        self.n_thresholds = n_thresholds
-        self.n_categories = n_categories
+        self.optimization_task   : str   = optimization_task
+        self.max_depth           : int   = max_depth
+        self.max_num_nodes       : Optional[int] = max_num_nodes
+        self.all_trees           : bool  = all_trees
+        self.min_leaf_node_size  : int   = min_leaf_node_size
+        self.time_limit          : float = time_limit
+        self.cost_complexity     : float = cost_complexity
+        self.feature_ordering    : str   = feature_ordering
+        self.hyper_tune          : bool  = hyper_tune
+        self.use_branch_caching  : bool  = use_branch_caching
+        self.use_dataset_caching : bool  = use_dataset_caching
+        self.use_terminal_solver : bool  = use_terminal_solver
+        self.use_similarity_lower_bound : bool = use_similarity_lower_bound
+        self.use_upper_bound     : bool  = use_upper_bound
+        self.use_lower_bound     : bool  = use_lower_bound
+        self.upper_bound         : float = upper_bound
+        self.verbose             : bool  = verbose
+        self.random_seed         : int   = random_seed
+        self.continuous_binarize_strategy : str = continuous_binarize_strategy
+        self.n_thresholds        :int    = n_thresholds
+        self.n_categories        : int   = n_categories
+        self.max_num_binary_features : Optional[int] = max_num_binary_features
         
-        self.fit_result = None
+        self.fit_result : SolverResult = None
         self._solver = None
         self._label_type = np.int32
-        self.binarizer_ = None
+        self.binarizer_ : Binarizer = None
         self._prev_data = None
         self._reset_parameters = ["optimization_task", "cost_complexity", "min_leaf_node_size"]
 
@@ -147,10 +152,10 @@ class BaseSTreeDSolver(BaseEstimator):
         self._params.use_lower_bound = self.use_lower_bound
         self._params.upper_bound = self.upper_bound
     
-    def get_solver_params(self):
+    def get_solver_params(self) -> ParameterHandler:
         return self._solver._get_parameters()
 
-    def _should_reset_solver(self, X, y, extra_data):
+    def _should_reset_solver(self, X, y, extra_data) -> bool:
         """
         Check if the solver should reset for a new fit. 
         self._reset_parameters contains a list of parameters that, 
@@ -169,7 +174,7 @@ class BaseSTreeDSolver(BaseEstimator):
             return True
         return False        
 
-    def _process_fit_data(self, X, y=None):
+    def _process_fit_data(self, X, y=None) -> np.ndarray:
         """
         Validate the X and y data before calling fit
         """
@@ -184,7 +189,7 @@ class BaseSTreeDSolver(BaseEstimator):
                 return X, y
             return X
     
-    def _process_score_data(self, X, y=None):
+    def _process_score_data(self, X, y=None) -> np.ndarray:
         """
         Validate the X and y data before calling score
         """
@@ -199,7 +204,7 @@ class BaseSTreeDSolver(BaseEstimator):
                 return X, y
             return X
     
-    def _process_predict_data(self, X):
+    def _process_predict_data(self, X) -> np.ndarray:
         """
         Validate the X and y data before calling predict
         """
@@ -223,7 +228,7 @@ class BaseSTreeDSolver(BaseEstimator):
         Binarize the non-binary, non-categorical features (the continuous features) into self.n_thresholds binary features
         """
         if reset:
-            self.binarizer_ = Binarizer(self.continuous_binarize_strategy, self.n_thresholds, self.n_categories, categorical_columns)
+            self.binarizer_ = Binarizer(self.continuous_binarize_strategy, self.n_thresholds, self.n_categories, categorical_columns, self.max_num_binary_features)
             self.binarizer_.fit(X, y)
         return self.binarizer_.transform(X)
 
@@ -234,25 +239,28 @@ class BaseSTreeDSolver(BaseEstimator):
         """
         pass
 
-    def fit(self, X, y, extra_data=None, categorical=None):
+    def fit(self, X, y, extra_data=None, categorical=None) -> Self:
         """
         Fits a STreeD model to the given training data.
 
-        Args:
-            x : array-like, shape = (n_samples, n_features)
+        Parameters
+        ----------
+        x : array-like, shape = (n_samples, n_features)
             Data matrix
 
-            y : array-like, shape = (n_samples)
+        y : array-like, shape = (n_samples)
             Target vector
 
-            extra_data : array-like, shape = (n_samples, n_data_items)
+        extra_data : array-like, shape = (n_samples, n_data_items)
             An array (optional) that represents extra data per instance
 
-        Returns:
-            BaseSTreeDSolver
+        Returns
+        ----------
+        BaseSTreeDSolver
 
-        Raises:
-            ValueError: If x or y is None or if they have different number of rows.
+        Raises
+        ----------
+        ValueError: If x or y is None or if they have different number of rows.
         """
         # Validate params and data
         self._validate_params()
@@ -292,22 +300,25 @@ class BaseSTreeDSolver(BaseEstimator):
         
         return self
 
-    def is_fitted(self):
+    def is_fitted(self) -> bool:
         return hasattr(self, "fit_result")
 
     def predict(self, X, extra_data=None):
         """
         Predicts the target variable for the given input feature data.
 
-        Args:
-            x : array-like, shape = (n_samples, n_features)
+        Parameters
+        ----------
+        x : array-like, shape = (n_samples, n_features)
             Data matrix
-            extra_data : array-like, shape = (n_samples)
+        
+        extra_data : array-like, shape = (n_samples)
             Extra data (if required)
 
-        Returns:
-            numpy.ndarray: A 1D array that represents the predicted target variable of the test data.
-                The i-th element in this array corresponds to the predicted target variable for the i-th instance in `x`.
+        Returns
+        ----------
+        numpy.ndarray: A 1D array that represents the predicted target variable of the test data.
+            The i-th element in this array corresponds to the predicted target variable for the i-th instance in `x`.
         """
         check_is_fitted(self, "fit_result")
         X = self._binarize_data(X, reset=False)
@@ -319,16 +330,20 @@ class BaseSTreeDSolver(BaseEstimator):
         """
         Computes the score for the given input feature data
 
-        Args:
-            x : array-like, shape = (n_samples, n_features)
+        Parameters
+        ----------
+        x : array-like, shape = (n_samples, n_features)
             Data matrix
-            y_true : array-like, shape = (n_samples)
+        
+        y_true : array-like, shape = (n_samples)
             The true labels
-            extra_data : array-like, shape = (n_samples)
+        
+        extra_data : array-like, shape = (n_samples)
             Extra data (if required)
 
-        Returns:
-            The score
+        Returns
+        ----------
+        The score
         """
         check_is_fitted(self, "fit_result")
         X = self._binarize_data(X, reset=False)
@@ -337,7 +352,7 @@ class BaseSTreeDSolver(BaseEstimator):
         self.test_result = self._solver._test_performance(self.fit_result, X, y_true, extra_data)
         return self.test_result.score()
     
-    def get_question_length(self, X, y_true, extra_data=None):
+    def get_question_length(self, X, y_true, extra_data=None) -> float:
         """
         Computes the average question length for the given input feature data
 
@@ -359,14 +374,14 @@ class BaseSTreeDSolver(BaseEstimator):
         self.test_result = self._solver._test_performance(self.fit_result, X, y_true, extra_data)
         return self.test_result.question_length()
 
-    def get_n_leaves(self):
+    def get_n_leaves(self) -> int:
         """
-        Returns the number of branching nodes in the fitted tree
+        Returns the number of leaf nodes in the fitted tree
         """
         check_is_fitted(self, "fit_result")
         return self.fit_result.tree_nodes() + 1
     
-    def get_depth(self):
+    def get_depth(self) -> int:
         """
         Returns the depth of the fitted tree (a single leaf node is depth zero)
         """
@@ -380,10 +395,10 @@ class BaseSTreeDSolver(BaseEstimator):
         check_is_fitted(self, "tree_")
         return self.tree_
     
-    def _get_label_str(self, label, label_names=None):
+    def _get_label_str(self, label, label_names=None) -> str:
         return str(label) if not isinstance(label, int) or label_names is None else label_names[label]
     
-    def _get_predicate_str(self, feature, feature_names=None):
+    def _get_predicate_str(self, feature, feature_names=None) -> str:
         if feature_names is None:
             return f"Feature {feature}"
         feature_name = feature_names[feature]

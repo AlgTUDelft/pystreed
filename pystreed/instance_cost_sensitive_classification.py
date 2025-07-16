@@ -4,6 +4,7 @@ from sklearn.utils._param_validation import Interval, StrOptions
 from typing import Optional
 from pystreed.utils import _color_brew, _dynamic_float_formatter
 import numpy as np
+import pandas as pd
 import os
 from pathlib import Path
 
@@ -29,7 +30,8 @@ class STreeDInstanceCostSensitiveClassifier(BaseSTreeDSolver):
                  random_seed : int = 27,
                  continuous_binarize_strategy: str = 'quantile',
                  n_thresholds: int = 5,
-                 n_categories: int = 5):
+                 n_categories: int = 5,
+                 max_num_binary_features: int = None):
         """
         Construct a STreeDInstanceCostSensitiveClassifier
 
@@ -52,6 +54,7 @@ class STreeDInstanceCostSensitiveClassifier(BaseSTreeDSolver):
             continuous_binarization_strategy: the strategy used for binarizing continuous features
             n_thresholds: the number of thresholds to use per continuous feature
             n_categories: the number of categories to use per categorical feature
+            max_num_binary_features: the maximum number of binary features (selected by random forest feature importance)
         """
         BaseSTreeDSolver.__init__(self, "instance-cost-sensitive", 
             max_depth=max_depth,
@@ -72,7 +75,8 @@ class STreeDInstanceCostSensitiveClassifier(BaseSTreeDSolver):
             random_seed=random_seed,
             continuous_binarize_strategy=continuous_binarize_strategy,
             n_thresholds=n_thresholds,
-            n_categories=n_categories)
+            n_categories=n_categories,
+            max_num_binary_features=max_num_binary_features)
         self.n_classes_ = None
 
     def _initialize_param_handler(self):
@@ -80,6 +84,8 @@ class STreeDInstanceCostSensitiveClassifier(BaseSTreeDSolver):
     
     def _check_data(self, y_in, reset=True):
         y_out = []
+        if isinstance(y_in, pd.DataFrame):
+            y_in = y_in.values
         if isinstance(y_in, np.ndarray):
             extra_data = []
             if len(y_in.shape) != 2 or y_in.shape[1] < 2:

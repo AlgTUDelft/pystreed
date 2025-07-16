@@ -68,8 +68,23 @@ namespace STreeD {
 		// Dataset caching do not need to transfer equivalent branches
 	}
 
+	template <class OT>
+	void Cache<OT>::UpdateMaxDepthSearched(ADataView& data, const Branch& branch, int depth) {
+		if (use_branch_caching) branch_cache.UpdateMaxDepthSearched(data, branch, depth);
+		if (use_dataset_caching) dataset_cache.UpdateMaxDepthSearched(data, branch, depth);
+	}
+
+	template <class OT>
+	int Cache<OT>::GetMaxDepthSearched(ADataView& data, const Branch& branch) {
+		return std::max(
+			use_branch_caching ? branch_cache.GetMaxDepthSearched(data, branch) : 0,
+			use_dataset_caching ? dataset_cache.GetMaxDepthSearched(data, branch) : 0
+		);
+	}
+
 	template class Cache<Accuracy>;
 	template class Cache<CostComplexAccuracy>;
+	template class Cache<BalancedAccuracy>;
 
 	template class Cache<Regression>;
 	template class Cache<CostComplexRegression>;

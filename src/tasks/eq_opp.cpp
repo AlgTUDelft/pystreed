@@ -18,10 +18,10 @@ namespace STreeD {
 
 	void EqOpp::InformTestData(const ADataView& test_data, const DataSummary& test_summary) {
 		OptimizationTask::InformTestData(test_data, test_summary);
-		runtime_assert(test_data.NumLabels() == 2);
 		// only count instances with label = 1 (positive label)
 		test_group0_size = 0;
 		test_group1_size = 0;
+		if (test_data.NumLabels() < 2) return;
 		for (auto& dp : test_data.GetInstancesForLabel(1)) {
 			if (dp->IsFeaturePresent(0))
 				test_group1_size++;

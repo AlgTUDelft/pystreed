@@ -62,4 +62,19 @@ namespace STreeD {
 	private:
 		KeyValueHeap feature_order;
 	};
+
+	class FeatureSelectorMSE : public FeatureSelectorAbstract {
+	public:
+		FeatureSelectorMSE() = delete;
+		FeatureSelectorMSE(int num_features) : FeatureSelectorAbstract(num_features), feature_order(num_features) {}
+		~FeatureSelectorMSE() = default;
+	protected:
+		int PopNextFeatureInternal() {
+			return feature_order.PopMax();
+		}
+		void InitializeInternal(const ADataView& data);
+
+	private:
+		KeyValueHeap feature_order;
+	};
 }

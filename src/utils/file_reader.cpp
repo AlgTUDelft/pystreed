@@ -160,6 +160,7 @@ namespace STreeD {
 
 	template void FileReader::ReadData<Accuracy>(ParameterHandler&, AData&, ADataView&, ADataView&, std::default_random_engine*);
 	template void FileReader::ReadData<CostComplexAccuracy>(ParameterHandler&, AData&, ADataView&, ADataView&, std::default_random_engine*);
+	template void FileReader::ReadData<BalancedAccuracy>(ParameterHandler&, AData&, ADataView&, ADataView&, std::default_random_engine*);
 
 	template void FileReader::ReadData<Regression>(ParameterHandler&, AData&, ADataView&, ADataView&, std::default_random_engine*);
 	template void FileReader::ReadData<CostComplexRegression>(ParameterHandler&, AData&, ADataView&, ADataView&, std::default_random_engine*);

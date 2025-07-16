@@ -117,6 +117,13 @@ namespace STreeD {
 	}
 
 	template <class OT>
+	inline void SimilarityLowerBoundComputer<OT>::Reset() {
+		int depth = archive_.size();
+		archive_.clear();
+		archive_.resize(depth);
+	}
+
+	template <class OT>
 	typename SimilarityLowerBoundComputer<OT>::ArchiveEntry& SimilarityLowerBoundComputer<OT>::GetMostSimilarStoredData(ADataView& data, int depth) {
 		runtime_assert(archive_[depth].size() > 0);
 
@@ -136,6 +143,7 @@ namespace STreeD {
 
 	template class SimilarityLowerBoundComputer<Accuracy>;
 	template class SimilarityLowerBoundComputer<CostComplexAccuracy>;
+	template class SimilarityLowerBoundComputer<BalancedAccuracy>;
 
 	template class SimilarityLowerBoundComputer<Regression>;
 	template class SimilarityLowerBoundComputer<CostComplexRegression>;

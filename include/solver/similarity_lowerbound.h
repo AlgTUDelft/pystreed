@@ -49,6 +49,8 @@ namespace STreeD {
 
 		void Disable();
 
+		void Reset();
+
 	private:
 
 		struct ArchiveEntry {

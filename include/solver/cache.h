@@ -32,6 +32,9 @@ namespace STreeD {
 		void UpdateLowerBound(ADataView&, const Branch& branch, SolContainer& lower_bound, int depth, int num_nodes);
 		SolContainer RetrieveLowerBound(ADataView&, const Branch& branch, int depth, int num_nodes);
 
+		int GetMaxDepthSearched(ADataView& data, const Branch& branch);
+		void UpdateMaxDepthSearched(ADataView& data, const Branch& branch, int depth);
+
 		void DisableLowerBoundCaching()	{ use_lower_bound_caching = false; }
 		void DisableOptimalCaching()	{ use_optimal_caching = false; }
 		void DisableBrachCaching()		{ use_branch_caching = false; }

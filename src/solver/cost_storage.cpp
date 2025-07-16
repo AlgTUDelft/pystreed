@@ -66,6 +66,7 @@ namespace STreeD {
 
 	template class CostStorage<Accuracy>;
 	template class CostStorage<CostComplexAccuracy>;
+	template class CostStorage<BalancedAccuracy>;
 
 	template class CostStorage<Regression>;
 	template class CostStorage<CostComplexRegression>;

@@ -40,6 +40,7 @@ namespace STreeD {
 		//if the branch has never been seen before, create a new entry for it
 		if (iter_vector_entry == hashmap.end()) {
 			CacheEntryVector<OT> vector_entry;
+			vector_entry.UpdateMaxDepthSearched(depth);
 			for (int node_budget = sol_num_nodes; node_budget <= num_nodes; node_budget++) {
 				for (int depth_budget = optimal_node_depth; depth_budget <= std::min(depth, node_budget); depth_budget++) {
 					vector_entry.push_back({ depth_budget, node_budget, optimal_solutions });
@@ -47,6 +48,7 @@ namespace STreeD {
 			}
 			cache[branch.Depth()].insert(std::pair<Branch, CacheEntryVector<OT> >(branch, vector_entry));
 		} else {
+			iter_vector_entry->second.UpdateMaxDepthSearched(depth);
 			//this sol is valid for size=[opt.NumNodes, num_nodes] and depths d=min(size, depth)
 
 			//now we need to see if other node budgets have been seen before. 
@@ -133,7 +135,7 @@ namespace STreeD {
 				
 		auto iter = hashmap.find(branch);
 		if (iter == hashmap.end()) { return empty_sol; }
-
+		
 		auto& entries = iter->second.entries;
 		for (CacheEntry<OT>& entry : entries) {
 			if (entry.GetDepthBudget() == depth && entry.GetNodeBudget() == num_nodes && entry.IsOptimal()) {
@@ -209,6 +211,24 @@ namespace STreeD {
 	}
 
 	template <class OT>
+	int BranchCache<OT>::GetMaxDepthSearched(ADataView&, const Branch& branch) {
+		auto& hashmap = cache[branch.Depth()];
+		auto iter = hashmap.find(branch);
+
+		if (iter == hashmap.end()) { return 0; }
+		return iter->second.GetMaxDepthSearched();
+	}
+
+	template <class OT>
+	void BranchCache<OT>::UpdateMaxDepthSearched(ADataView&, const Branch& branch, int depth) {
+		auto& hashmap = cache[branch.Depth()];
+		auto iter = hashmap.find(branch);
+
+		if (iter == hashmap.end()) { return ; }
+		iter->second.UpdateMaxDepthSearched(depth);
+	}
+
+	template <class OT>
 	int BranchCache<OT>::NumEntries() const {
 		size_t count = 0;
 		for (auto& c : cache) {
@@ -219,6 +239,7 @@ namespace STreeD {
 
 	template class BranchCache<Accuracy>;
 	template class BranchCache<CostComplexAccuracy>;
+	template class BranchCache<BalancedAccuracy>;
 
 	template class BranchCache<Regression>;
 	template class BranchCache<CostComplexRegression>;
