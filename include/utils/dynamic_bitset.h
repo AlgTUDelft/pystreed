@@ -2,14 +2,16 @@
 
 namespace STreeD {
 
-	struct DynamicBitSet {	
+	struct DynamicBitSet {
 		using BaseType = unsigned long;
-		
+		static constexpr size_t BITS_PER_ELEMENT = sizeof(BaseType) * CHAR_BIT;
+		static constexpr size_t BYTES_PER_ELEMENT = sizeof(BaseType);
+
 		BaseType* bitset;
 		size_t elements;
-	
+
 		DynamicBitSet(size_t size) {
-			elements = (size - 1) / sizeof(BaseType) + 1;
+			elements = (size - 1) / BITS_PER_ELEMENT + 1;
 			bitset = new BaseType[elements];
 			std::fill(bitset, bitset + elements, 0);
 		}
@@ -22,16 +24,16 @@ namespace STreeD {
 
 		DynamicBitSet(const DynamicBitSet& other) : elements(other.elements) {
 			bitset = new BaseType[elements];
-			std::memcpy(bitset, other.bitset, elements * sizeof(BaseType));
+			std::memcpy(bitset, other.bitset, elements * BYTES_PER_ELEMENT);
 		}
 
-		DynamicBitSet& operator=(const DynamicBitSet& other)  {
+		DynamicBitSet& operator=(const DynamicBitSet& other) {
 			if (this == &other)
 				return *this;
 
 			elements = other.elements;
 			BaseType* new_bitset = new BaseType[elements];
-			std::memcpy(new_bitset, other.bitset, elements * sizeof(BaseType));
+			std::memcpy(new_bitset, other.bitset, elements * BYTES_PER_ELEMENT);
 			delete[] bitset;
 			bitset = new_bitset;
 			return *this;
@@ -50,22 +52,22 @@ namespace STreeD {
 		}
 
 		void SetBit(size_t index) {
-			size_t element = index / sizeof(BaseType);
-			size_t bit_index = index % sizeof(BaseType);
+			size_t element = index / BITS_PER_ELEMENT;
+			size_t bit_index = index % BITS_PER_ELEMENT;
 			runtime_assert(element < elements);
 			bitset[element] |= 1UL << bit_index;
 		}
 
 		void ClearBit(size_t index) {
-			size_t element = index / sizeof(BaseType);
-			size_t bit_index = index % sizeof(BaseType);
+			size_t element = index / BITS_PER_ELEMENT;
+			size_t bit_index = index % BITS_PER_ELEMENT;
 			runtime_assert(element < elements);
 			bitset[element] &= 1UL << bit_index;
 		}
 
 		void ToggleBit(size_t index) {
-			size_t element = index / sizeof(BaseType);
-			size_t bit_index = index % sizeof(BaseType);
+			size_t element = index / BITS_PER_ELEMENT;
+			size_t bit_index = index % BITS_PER_ELEMENT;
 			runtime_assert(element < elements);
 			bitset[element] ^= 1UL << bit_index;
 		}
