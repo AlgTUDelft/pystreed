@@ -3,14 +3,12 @@ import numpy as np
 from pandas.api.types import is_numeric_dtype
 from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.utils.validation import _check_feature_names_in, check_array, check_is_fitted
+from sklearn.utils.validation import check_array, check_is_fitted, validate_data
 from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sklearn.model_selection import GridSearchCV
 import sklearn
 import numbers
 import itertools
-import math
 import warnings
 import collections
 
@@ -173,7 +171,7 @@ class CategoricalBinarizer(BaseEstimator, TransformerMixin):
         self._validate_params()
         with warnings.catch_warnings():
             warnings.filterwarnings(action="ignore", category=FutureWarning)
-            X = self._validate_data(X, dtype=None)
+            X = validate_data(self, X, dtype=None)
 
         n_samples, n_features = X.shape
         n_categories = self._validate_n_categories(n_features)
@@ -228,7 +226,7 @@ class CategoricalBinarizer(BaseEstimator, TransformerMixin):
         check_is_fitted(self)
         with warnings.catch_warnings():
             warnings.filterwarnings(action="ignore", category=FutureWarning)
-            X = self._validate_data(X, reset=False, dtype=None)
+            X = validate_data(self, X, reset=False, dtype=None)
 
         n_samples, n_features = X.shape
         sum_of_bin_features = sum(self.n_categories_)
@@ -286,7 +284,7 @@ class KThresholdBinarizer(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         with warnings.catch_warnings():
             warnings.filterwarnings(action="ignore", category=FutureWarning)
-            X = self._validate_data(X, dtype="numeric")
+            X = validate_data(self, X, dtype="numeric")
             
         if self.strategy == 'tree':
             if y is None:
@@ -348,7 +346,7 @@ class KThresholdBinarizer(BaseEstimator, TransformerMixin):
         check_is_fitted(self)
         with warnings.catch_warnings():
             warnings.filterwarnings(action="ignore", category=FutureWarning)
-            X = self._validate_data(X, reset=False)
+            X = validate_data(self, X, reset=False)
 
         n_samples, n_features = X.shape
         sum_of_bin_features = sum(self.n_thresholds_)

@@ -1,6 +1,6 @@
 from sklearn.utils._param_validation import Interval, StrOptions
 from sklearn.base import BaseEstimator
-from sklearn.utils.validation import check_array, check_is_fitted
+from sklearn.utils.validation import check_array, check_is_fitted, validate_data
 from .cstreed import initialize_streed_solver, ParameterHandler, SolverResult, RandomEngine
 from pystreed.binarizer import Binarizer
 from pystreed.utils import _dynamic_float_formatter
@@ -180,7 +180,7 @@ class BaseSTreeDSolver(BaseEstimator):
         """
         with warnings.catch_warnings():
             warnings.filterwarnings(action="ignore", category=FutureWarning)
-            X = self._validate_data(X, ensure_min_samples=2, dtype=np.intc)
+            X = validate_data(self, X, ensure_min_samples=2, dtype=np.intc)
             
             if not y is None:
                 y = check_array(y, ensure_2d=False, dtype=self._label_type)
@@ -195,7 +195,7 @@ class BaseSTreeDSolver(BaseEstimator):
         """
         with warnings.catch_warnings():
             warnings.filterwarnings(action="ignore", category=FutureWarning)
-            X = self._validate_data(X, reset=False, dtype=np.intc)
+            X = validate_data(self, X, reset=False, dtype=np.intc)
             
             if not y is None:
                 y = check_array(y, ensure_2d=False, dtype=self._label_type)
@@ -210,7 +210,7 @@ class BaseSTreeDSolver(BaseEstimator):
         """
         with warnings.catch_warnings():
             warnings.filterwarnings(action="ignore", category=FutureWarning)
-            return self._validate_data(X, reset=False, dtype=np.intc)
+            return validate_data(self, X, reset=False, dtype=np.intc)
 
     def _process_extra_data(self, X, extra_data):
         """
