@@ -22,6 +22,8 @@ setup(
     name=package_name,
     version=__version__,
     ext_modules=ext_modules,
+    packages=["pystreed"],
+    package_dir={"": "src"},
     dev_requires=['pytest'],
     install_requires=['pandas', 'numpy'],
     # Add read me as long description and replace relative example links with absolute links
