@@ -54,6 +54,7 @@ class BaseSTreeDSolver(BaseEstimator):
             use_lower_bound: bool = True,
             upper_bound: float = 2**31-1,
             verbose: bool = False,
+            print_intermediates: bool = False,
             random_seed: int = 27, 
             continuous_binarize_strategy: str = 'quantile',
             n_thresholds: int = 5,
@@ -80,6 +81,7 @@ class BaseSTreeDSolver(BaseEstimator):
             use_lower_bound: Enable/Disable the use of lower bounds (Enabled is typically faster)
             upper_bound: Search for a tree better than the provided upper bound
             verbose: Enable/Disable verbose output
+            print_intermediates: Enable/Disable printing intermediate solutions
             random_seed: the random seed used by the solver (for example when creating folds)
             continuous_binarization_strategy: the strategy used for binarizing continuous features
             n_thresholds: the number of thresholds to use per continuous feature
@@ -104,6 +106,7 @@ class BaseSTreeDSolver(BaseEstimator):
         self.use_lower_bound     : bool  = use_lower_bound
         self.upper_bound         : float = upper_bound
         self.verbose             : bool  = verbose
+        self.print_intermediates : bool  = print_intermediates
         self.random_seed         : int   = random_seed
         self.continuous_binarize_strategy : str = continuous_binarize_strategy
         self.n_thresholds        :int    = n_thresholds
@@ -142,6 +145,7 @@ class BaseSTreeDSolver(BaseEstimator):
             self._params.cost_complexity = 0.0
         self._params.feature_ordering = self.feature_ordering
         self._params.verbose = self.verbose
+        self._params.print_intermediates = self.print_intermediates
         self._params.random_seed = self.random_seed
 
         self._params.use_branch_caching = self.use_branch_caching

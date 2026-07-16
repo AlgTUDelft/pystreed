@@ -32,6 +32,7 @@ namespace STreeD {
 	struct SolverParameters {
 		SolverParameters(const ParameterHandler& parameters);
 		bool verbose{ true };
+		bool print_intermediates{ false };
 		bool use_terminal_solver{ true };
 		bool use_lower_bounding{ true };
 		bool use_task_lower_bounding{ true };
@@ -42,6 +43,8 @@ namespace STreeD {
 		bool use_lower_bound_early_stop{ true };
 		int minimum_leaf_node_size{ 1 };
 		size_t UB_LB_max_size{ 12 };
+
+		bool PrintProgress() const { return verbose && !print_intermediates; }
 	};
 
 	struct ProgressTracker {
@@ -299,6 +302,11 @@ namespace STreeD {
 		* Return true if a feature is redundant
 		*/
 		bool IsRedundantFeature(int feature) const { return redundant_features[feature]; }
+
+		/*
+		* Print information on intermediate solutions
+		*/
+		void PrintIntermediateSolution(const SolContainer& sol) const;
 
 	private:
 		OT* task{ nullptr };

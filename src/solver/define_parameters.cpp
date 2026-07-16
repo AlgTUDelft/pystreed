@@ -123,6 +123,14 @@ namespace STreeD {
 
 		parameters.DefineBooleanParameter
 		(
+			"print-intermediates",
+			"Determines if the solver should print the value of intermediate solutions.",
+			false,
+			"Main Parameters"
+		);
+
+		parameters.DefineBooleanParameter
+		(
 			"all-trees",
 			"Instructs the algorithm to compute trees using all allowed combinations of max-depth and max-num-nodes. Used to stress-test the algorithm.",
 			false,

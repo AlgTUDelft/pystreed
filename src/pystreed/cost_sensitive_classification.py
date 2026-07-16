@@ -19,6 +19,7 @@ class STreeDCostSensitiveClassifier(BaseSTreeDSolver):
                  use_lower_bound: bool = True,
                  upper_bound: float = 2**31-1,
                  verbose : bool = False,
+                 print_intermediates : bool = False,
                  random_seed: int = 27):
         """
         Construct a STreeDCostSensitiveClassifier
@@ -36,6 +37,7 @@ class STreeDCostSensitiveClassifier(BaseSTreeDSolver):
             use_lower_bound: Enable/Disable the use of lower bounds (Enabled is typically faster)
             upper_bound: Search for a tree better than the provided upper bound
             verbose: Enable/Disable verbose output
+            print_intermediates: Enable/Disable printing intermediate solutions
             random_seed: the random seed used by the solver (for example when creating folds)
         """
         BaseSTreeDSolver.__init__(self, "cost-sensitive", 
@@ -54,6 +56,7 @@ class STreeDCostSensitiveClassifier(BaseSTreeDSolver):
             use_lower_bound=use_lower_bound,
             upper_bound=upper_bound,
             verbose=verbose,
+            print_intermediates=print_intermediates,
             random_seed=random_seed)
         
     def _post_initialize_solver(self):

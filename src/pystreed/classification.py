@@ -37,6 +37,7 @@ class STreeDClassifier(BaseSTreeDSolver, ClassifierMixin):
                  use_task_lower_bound: bool = True,
                  upper_bound: float = 2**31 -1,
                  verbose : bool = False,
+                 print_intermediates : bool = False,
                  random_seed: int = 27, 
                  continuous_binarize_strategy: str = 'quantile',
                  n_thresholds: int = 5,
@@ -65,6 +66,7 @@ class STreeDClassifier(BaseSTreeDSolver, ClassifierMixin):
             use_task_lower_bound: Enable/Disable the equivalent point lower bound for cost-complex-accuracy
             upper_bound: Search for a tree better than the provided upper bound
             verbose: Enable/Disable verbose output
+            print_intermediates: Enable/Disable printing intermediate solutions
             random_seed: the random seed used by the solver (for example when creating folds)
             continuous_binarization_strategy: the strategy used for binarizing continuous features
             n_thresholds: the number of thresholds to use per continuous feature
@@ -90,6 +92,7 @@ class STreeDClassifier(BaseSTreeDSolver, ClassifierMixin):
             use_lower_bound=use_lower_bound,
             upper_bound=upper_bound,
             verbose=verbose,
+            print_intermediates=print_intermediates,
             random_seed=random_seed,
             continuous_binarize_strategy=continuous_binarize_strategy,
             n_thresholds=n_thresholds,

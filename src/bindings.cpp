@@ -246,6 +246,7 @@ PYBIND11_MODULE(cstreed, m) {
     ExposeFloatProperty(parameter_handler, "cost-complexity", "cost_complexity");
     ExposeStringProperty(parameter_handler, "feature-ordering", "feature_ordering");
     ExposeBooleanProperty(parameter_handler, "verbose", "verbose");
+    ExposeBooleanProperty(parameter_handler, "print-intermediates", "print_intermediates");
     ExposeFloatProperty(parameter_handler, "train-test-split", "validation_set_fraction");
     ExposeIntegerProperty(parameter_handler, "min-leaf-node-size", "min_leaf_node_size");
     ExposeBooleanProperty(parameter_handler, "use-branch-caching", "use_branch_caching");

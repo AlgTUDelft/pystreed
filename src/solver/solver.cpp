@@ -10,6 +10,7 @@ namespace STreeD {
 
 	SolverParameters::SolverParameters(const ParameterHandler& parameters) :
 		verbose(parameters.GetBooleanParameter("verbose")),
+		print_intermediates(parameters.GetBooleanParameter("print-intermediates")),
 		use_terminal_solver(parameters.GetBooleanParameter("use-terminal-solver")),
 		use_upper_bounding(parameters.GetBooleanParameter("use-upper-bound")),
 		use_lower_bounding(parameters.GetBooleanParameter("use-lower-bound")),
@@ -97,6 +98,7 @@ namespace STreeD {
 				AddSol<OT>(global_UB, Node<OT>(ub));
 			}
 			result = SolveLeafNode(train_data, root_context, global_UB);
+			PrintIntermediateSolution(result);
 		}
 
 		// If all number of nodes options should be considered, set min_num_nodes to 1, else to max
@@ -111,7 +113,7 @@ namespace STreeD {
 			// For each number of nodes that should be considered, find the optimal solution
 			for (int num_nodes = min_num_nodes; num_nodes <= max_num_nodes; num_nodes++) {
 				if (!stopwatch.IsWithinTimeLimit()) { break; }
-				if (solver_parameters.verbose) {
+				if (solver_parameters.PrintProgress()) {
 					progress_tracker.Reset();
 					std::cout << "Search n = " << std::setw(3) << num_nodes << " | ";
 				}
@@ -127,7 +129,7 @@ namespace STreeD {
 						global_UB.solution = global_UB.solution = result.solution - OT::minimum_difference;
 					}
 				}
-				if (solver_parameters.verbose) {
+				if (solver_parameters.PrintProgress()) {
 					progress_tracker.Done();
 					std::cout << " | " << std::setw(5) << stopwatch.TimeElapsedInSeconds() << " seconds ";
 					if constexpr (OT::total_order) {
@@ -143,7 +145,7 @@ namespace STreeD {
 			int min_max_depth = std::min(2, max_depth);
 			for (int _max_depth = min_max_depth; _max_depth <= max_depth; _max_depth++) {
 				int _num_nodes = std::min(max_num_nodes, (1 << _max_depth) - 1);
-				if (solver_parameters.verbose ) {
+				if (solver_parameters.PrintProgress()) {
 					progress_tracker.Reset();
 					std::cout << "Search d = " << std::setw(2) << _max_depth << " | ";
 				}
@@ -159,7 +161,7 @@ namespace STreeD {
 				}
 				max_depth_searched = _max_depth;
 				max_depth_finished = _max_depth;
-				if (solver_parameters.verbose) {
+				if (solver_parameters.PrintProgress()) {
 					progress_tracker.Done();
 					std::cout << " | " << std::setw(5) << stopwatch.TimeElapsedInSeconds() << " seconds ";
 					if constexpr (OT::total_order) {
@@ -289,7 +291,7 @@ namespace STreeD {
 	}
 
 	template <class OT>
-	typename Solver<OT>::SolContainer Solver<OT>::SolveSubTree(ADataView & data, const Solver<OT>::Context& context, typename Solver<OT>::SolContainer UB_, int org_max_depth, int org_num_nodes) {
+	typename Solver<OT>::SolContainer Solver<OT>::SolveSubTree(ADataView& data, const Solver<OT>::Context& context, typename Solver<OT>::SolContainer UB_, int org_max_depth, int org_num_nodes) {
 		int max_depth = org_max_depth, num_nodes = org_num_nodes;
 		runtime_assert(0 <= max_depth && max_depth <= num_nodes);
 		if (!stopwatch.IsWithinTimeLimit()) { return InitializeSol<OT>(); }
@@ -386,7 +388,9 @@ namespace STreeD {
 		if constexpr (OT::use_terminal) {
 			if (IsTerminalNode(max_depth, num_nodes)) {
 				if (solver_parameters.use_upper_bounding) AddRootRelaxSols<OT>(task, branch, UB, leaf_solutions);
-				return SolveTerminalNode(data, context, UB, max_depth, num_nodes);
+				auto result = SolveTerminalNode(data, context, UB, max_depth, num_nodes);
+				if (context.GetBranch().Depth() == 0) PrintIntermediateSolution(result);
+				return result;
 			}
 		}
 
@@ -426,7 +430,7 @@ namespace STreeD {
 		int f_count = 0;
 		while (feature_selector->AreThereAnyFeaturesLeft()) {
 
-			if (solver_parameters.verbose && current_depth == 0) {
+			if (solver_parameters.PrintProgress() && current_depth == 0) {
 				progress_tracker.UpdateProgressCount(f_count++);
 			}
 
@@ -537,7 +541,10 @@ namespace STreeD {
 						AddSols<OT>(infeasible_lb, new_node);
 						continue;
 					}
-					if (LeftStrictDominatesRightSol<OT>(new_node, solutions)) solutions = new_node;
+					if (LeftStrictDominatesRightSol<OT>(new_node, solutions)) {
+						solutions = new_node;
+						if(current_depth == 0) PrintIntermediateSolution(solutions);
+					}
 					UpdateUB(context, UB, new_node);
 				}
 
@@ -1335,6 +1342,21 @@ namespace STreeD {
 		typename OT::ContextType context;
 		tree->Classify(&data_splitter, task, context, flipped_features, test_data, labels);
 		return labels;
+	}
+
+	template <class OT>
+	void Solver<OT>::PrintIntermediateSolution(const typename Solver<OT>::SolContainer& sol) const {
+		if constexpr (OT::total_order) {
+			if (solver_parameters.print_intermediates) {
+				size_t terminal_calls = stats.num_terminal_nodes_with_node_budget_one 
+					+ stats.num_terminal_nodes_with_node_budget_two 
+					+ stats.num_terminal_nodes_with_node_budget_three;
+				std::cout
+					<< "After " << std::setw(5) << stopwatch.TimeElapsedInSeconds() << " seconds "
+					<< "(" << terminal_calls << " terminal calls) "
+					<< "Solution = " << std::setw(5) << OT::SolToString(sol.solution) << std::endl;
+			}
+		}
 	}
 
 	template class Solver<Accuracy>;
