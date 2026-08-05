@@ -157,9 +157,9 @@ namespace STreeD {
 		if (data.NumFeatures() > num_features) data.SetNumFeatures(num_features);
 	}
 
-
 	template void FileReader::ReadData<Accuracy>(ParameterHandler&, AData&, ADataView&, ADataView&, std::default_random_engine*);
 	template void FileReader::ReadData<CostComplexAccuracy>(ParameterHandler&, AData&, ADataView&, ADataView&, std::default_random_engine*);
+	template void FileReader::ReadData<AccuracyFlex>(ParameterHandler&, AData&, ADataView&, ADataView&, std::default_random_engine*);
 	template void FileReader::ReadData<BalancedAccuracy>(ParameterHandler&, AData&, ADataView&, ADataView&, std::default_random_engine*);
 
 	template void FileReader::ReadData<Regression>(ParameterHandler&, AData&, ADataView&, ADataView&, std::default_random_engine*);

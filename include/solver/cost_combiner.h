@@ -47,11 +47,11 @@ namespace STreeD {
 		void InitializeIndexInfos(int num_features);
 
 		void GetIndexInfo(int f1, int f2, IndexInfo& index_info) const { index_info = index_infos[f1][f2]; }
-		void CalcLeafSol(SolType& sol, int label, SolLabelType& label_out) const;
-		void CalcSols(const Counts& counts, Sols<OT>& sols, int label, int f1, int f2) const;
-		void CalcSols(const Counts& counts, Sols<OT>& sols, int label, const IndexInfo& index) const;
-		void CalcSol00(SolType& sol, int label, int f1, int f2) const;
-		void CalcSol11(SolType& sol, int label, int f1, int f2) const;
+		void CalcLeafSol(SolType& sol, int label, int depth, SolLabelType& label_out) const;
+		void CalcSols(const Counts& counts, Sols<OT>& sols, int label, int depth, int f1, int f2) const;
+		void CalcSols(const Counts& counts, Sols<OT>& sols, int label, int depth, const IndexInfo& index) const;
+		void CalcSol00(SolType& sol, int label, int depth, int f1, int f2) const;
+		void CalcSol11(SolType& sol, int label, int depth, int f1, int f2) const;
 
 		const SolD2Type GetCosts00(int label, int f1, int f2) const;
 		const SolD2Type GetCosts01(int label, int f1, int f2) const;
@@ -82,6 +82,12 @@ namespace STreeD {
 		void UpdateBranchingCosts(const ADataView& data, const Context& context);
 
 	private:
+
+		void UpdateCountCost(const ADataView& data, int multiplier, bool only_one_dimension);
+
+		template <bool update_count, bool update_cost> 
+		void UpdateCountCost(const AInstance* data_point, int org_label, int label, typename OT::SolD2Type& costs, int multiplier, bool only_one_dimension);
+
 		OT* task;
 		ADataView data;
 		int num_nodes, num_features;

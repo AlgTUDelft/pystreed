@@ -84,7 +84,7 @@ namespace STreeD {
 		
 		inline bool IsD2ZeroCost(const GroupFairnessSol& d2costs) const { return false; }
 
-		void ComputeD2Costs(const GroupFairnessSol& d2costs, int count, GroupFairnessSol& costs) const { costs = d2costs; }
+		void ComputeD2Costs(const GroupFairnessSol& d2costs, int count, int label, int depth, GroupFairnessSol& costs) const { costs = d2costs; }
 		inline GroupFairnessSol GetWorstPerLabel(int label) const { 
 			return label ?
 				GroupFairnessSol({ 1, 1.0 / train_group1_size, 1.0 / train_group0_size }) :

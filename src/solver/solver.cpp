@@ -224,6 +224,7 @@ namespace STreeD {
 		
 		// Inform the task about the solver parameters
 		task->UpdateParameters(parameters);
+		solver_parameters = SolverParameters(parameters);
 
 		// If the training data is the same, the cache does not need to be repopulated
 		// Except if the hyper tune configuration sets reset to true
@@ -456,6 +457,7 @@ namespace STreeD {
 			ADataView left_data;
 			ADataView right_data;
 			data_splitter.Split(data, branch, feature, left_data, right_data);
+
 			if (!SatisfiesMinimumLeafNodeSize(left_data) || !SatisfiesMinimumLeafNodeSize(right_data)) continue;
 
 			// Generate the context descriptors for the left and richt sub-branch
@@ -606,7 +608,7 @@ namespace STreeD {
 				cache->UpdateLowerBound(data, branch, UB, 1, 1);
 			}
 		}
-		if (!cache->IsOptimalAssignmentCached(data, branch, 2, 2)) {
+		if (max_depth > 1 && !cache->IsOptimalAssignmentCached(data, branch, 2, 2)) {
 			auto& two_nodes_solutions = results.two_nodes_solutions;
 			if (!CheckEmptySol<OT>(two_nodes_solutions)) {
 				cache->StoreOptimalBranchAssignment(data, branch, two_nodes_solutions, 2, 2);
@@ -614,7 +616,7 @@ namespace STreeD {
 				cache->UpdateLowerBound(data, branch, UB, 2, 2);
 			}
 		}
-		if (!cache->IsOptimalAssignmentCached(data, branch, 2, 3)) {
+		if (max_depth > 1 && !cache->IsOptimalAssignmentCached(data, branch, 2, 3)) {
 			auto& three_nodes_solutions = results.three_nodes_solutions;
 			if (!CheckEmptySol<OT>(three_nodes_solutions)) {
 				cache->StoreOptimalBranchAssignment(data, branch, three_nodes_solutions, 2, 3);
@@ -968,86 +970,104 @@ namespace STreeD {
 		InitializeSolver(_train_data);
 
 		bool verbose = parameters.GetBooleanParameter("verbose");
+		const int max_depth = int(parameters.GetIntegerParameter("max-depth"));
 		const int max_num_nodes = int(parameters.GetIntegerParameter("max-num-nodes"));
 
-		for (int tune_phase = 0; tune_phase < OT::num_tune_phases; tune_phase++) {
-			int best_config = -1;
-			double best_score;
-			auto tuning_config = OT::GetTuneRunConfiguration(parameters, train_data, tune_phase);
+		std::string tune_method = parameters.GetStringParameter("tune-method");
 
-			const int n_runs = tuning_config.GetNumberOfRuns();
-			const int n_configs = tuning_config.GetNumberOfConfigs();
-			const double validation_percentage = tuning_config.validation_percentage;
+		{
+			const int num_tune_phases = task->GetNumberOfTunePhases();
+			bool _verbose = parameters.GetBooleanParameter("verbose");
+			for (int tune_phase = 0; tune_phase < num_tune_phases; tune_phase++) {
+				
+				int best_config = -1;
+				double best_score = DBL_MAX;
+				auto tuning_config = OT::GetTuneRunConfiguration(parameters, train_data, tune_phase);
 
-			std::vector<std::vector<ScoreType>> performances(n_configs, std::vector<ScoreType>(n_runs));
+				const int n_runs = std::min(train_data.Size(), int(parameters.GetIntegerParameter("num-hyper-runs")));
+				const int n_configs = tuning_config.GetNumberOfConfigs();
 
-			std::vector<ADataView> sub_train_datas, sub_test_datas;
-			ADataView::KFoldSplit<typename OT::LabelType>(train_data, sub_train_datas, sub_test_datas, rng, n_runs, false);
+				std::vector<std::vector<ScoreType>> performances(n_configs, std::vector<ScoreType>(n_runs));
 
-			for (int r = 0; r < n_runs; r++) {
-				int ix = 0;
-				Solver<OT> solver(parameters, rng);
-				solver.solver_parameters.verbose = false;
-				solver.redundant_features = redundant_features;
-				solver.task->CopyTaskInfoFrom(this->task);
-				//ADataView::TrainTestSplitData<typename OT::LabelType>(train_data, sub_train_data, sub_test_data, rng, validation_percentage, true);
-				ADataView& sub_train_data = sub_train_datas[r], &sub_test_data = sub_test_datas[r];
-				solver.InitializeSolver(sub_train_data); // Initialize with max-depth
-				solver.InitializeTest(sub_test_data);
-				auto worst = InternalTestScore<OT>::GetWorst(solver.task);
-				for (int c = 0; c < n_configs;c++) {
-					if (!stopwatch.IsWithinTimeLimit()) {
-						performances[c][r] = worst;
-						continue;
-					}
-					if (verbose) {
-						std::cout << "Tune phase " << (tune_phase + 1) << "/" << OT::num_tune_phases
-							<< " Split " << (r + 1) << "/" << n_runs
-							<< " Config " << (c + 1) << "/" << n_configs
-							<< " \t" << tuning_config.descriptors[c];
-					}
-					
-					bool reset = solver.parameters.GetIntegerParameter("max-depth") < tuning_config.parameters[c].GetIntegerParameter("max-depth");
-					solver.parameters = tuning_config.parameters[c];
-					solver.parameters.SetFloatParameter("time", stopwatch.TimeLeftInSeconds());
-					solver.InitializeSolver(sub_train_data, tuning_config.reset_solver || reset);
-					const auto result = solver.Solve(sub_train_data);
-					const auto test_result = solver.TestPerformance(result, sub_test_data);					
-					if (result->NumSolutions() == 0 || !result->IsProvenOptimal()) {
-						if (c > 0) performances[c][r] = performances[c - 1][r];
-						else performances[c][r] = worst;
-					} else {
-						performances[c][r] = test_result->scores[test_result->best_index];
-					}
-					if(verbose) std::cout << " \tScore: " << OT::ScoreToString(performances[c][r]->score) << std::endl;
-					if (tuning_config.skip_when_max_tree && result->GetBestNodeCount() == max_num_nodes && c + 1 < n_configs) {
-						if (verbose) std::cout << "Reached maximum tree. Skipping configuration " << (c + 2) << " to " << n_configs << std::endl;
-						for (c++; c < n_configs;c++) {
-							performances[c][r] = performances[c - 1][r];
+				std::vector<ADataView> sub_train_datas, sub_test_datas;
+				ADataView::KFoldSplit<typename OT::LabelType>(train_data, sub_train_datas, sub_test_datas, rng, n_runs, false);
+
+				for (int r = 0; r < n_runs; r++) {
+					int ix = 0;
+					Solver<OT> solver(parameters, rng);
+					solver.solver_parameters.verbose = false;
+					solver.redundant_features = redundant_features;
+					solver.task->CopyTaskInfoFrom(this->task);
+					//ADataView sub_train_data, sub_test_data;
+					//ADataView::TrainTestSplitData<typename OT::LabelType>(train_data, sub_train_data, sub_test_data, rng, validation_percentage, false);
+					ADataView& sub_train_data = sub_train_datas[r], & sub_test_data = sub_test_datas[r];
+					solver.InitializeSolver(sub_train_data); // Initialize with max-depth
+					solver.InitializeTest(sub_test_data);
+					auto worst = InternalTestScore<OT>::GetWorst(solver.task);
+					for (int c = 0; c < n_configs;c++) {
+						if (!stopwatch.IsWithinTimeLimit()) {
+							performances[c][r] = worst;
+							continue;
+						}
+						if (verbose) {
+							std::cout << "Tune phase " << (tune_phase + 1) << "/" << num_tune_phases
+								<< " Split " << (r + 1) << "/" << n_runs
+								<< " Config " << (c + 1) << "/" << n_configs
+								<< " \t" << tuning_config.descriptors[c];
+						}
+
+						bool reset = solver.parameters.GetIntegerParameter("max-depth") < tuning_config.parameters[c].GetIntegerParameter("max-depth");
+						solver.parameters = tuning_config.parameters[c];
+						solver.parameters.SetFloatParameter("time", stopwatch.TimeLeftInSeconds());
+						solver.parameters.SetBooleanParameter("verbose", false);
+						solver.InitializeSolver(sub_train_data, tuning_config.reset_solver || reset);
+						const auto result = solver.Solve(sub_train_data);
+						const auto test_result = solver.TestPerformance(result, sub_test_data);
+						if (result->NumSolutions() == 0 || !result->IsProvenOptimal()) {
+							if (c > 0) performances[c][r] = performances[c - 1][r];
+							else performances[c][r] = worst;
+						} else {
+							performances[c][r] = test_result->scores[test_result->best_index];
+						}
+						if (verbose) std::cout << " \tn = " << result->GetBestNodeCount() << " \tScore: " << OT::ScoreToString(performances[c][r]->score) << std::endl;
+						if (tuning_config.skip_when_max_tree && result->GetBestNodeCount() == max_num_nodes && c + 1 < n_configs) {
+							if (verbose) std::cout << "Reached maximum tree. Skipping configuration " << (c + 2) << " to " << n_configs << std::endl;
+							for (c++; c < n_configs;c++) {
+								performances[c][r] = performances[c - 1][r];
+							}
 						}
 					}
 				}
-			}
 
-			for (int c = 0; c < n_configs; c++) {
-				auto avg_perf = InternalTestScore<OT>::GetAverage(performances[c]);
-				auto& score = avg_perf->score;
-				if (best_config == -1 || OT::CompareScore(score, best_score)) {
-					best_config = c;
-					best_score = score;
+				for (int c = 0; c < n_configs; c++) {
+					auto avg_perf = InternalTestScore<OT>::GetAverage(performances[c]);
+					auto& score = avg_perf->score;
+					if (verbose) {
+						std::cout << " Average " << tuning_config.descriptors[c] << " \tScore: " << OT::ScoreToString(score) << std::endl;
+					}
+					if (best_config == -1 || OT::CompareScore(score, best_score)) {
+						best_config = c;
+						best_score = score;
+					}
+				}
+
+				if (verbose) {
+					std::cout << std::endl << "Finished hyper parameter search (phase " << (tune_phase + 1) << "/" << num_tune_phases << "). Best config : " << tuning_config.descriptors[best_config] << std::endl << std::endl;
+				}
+				parameters = tuning_config.parameters[best_config];
+
+				if (tune_phase == num_tune_phases - 1 && tuning_config.HasResults()) {
+					std::cout << "Obtain best result from cache." << std::endl;
+					return tuning_config.results[best_config];
 				}
 			}
-
-			if (verbose) {
-				std::cout << std::endl << "Finished hyper parameter search (phase " << (tune_phase+1) << "/" << OT::num_tune_phases << "). Best config : " <<  tuning_config.descriptors[best_config] << std::endl << std::endl;
-			}
-			parameters = tuning_config.parameters[best_config];
 		}
 		stats.total_time += stopwatch.TimeElapsedInSeconds();
 		parameters.SetFloatParameter("time", stopwatch.TimeLeftInSeconds());
+			
+		InitializeSolver(train_data, true);
 		return Solve(train_data);
 	}
-
 
 	template<class OT>
 	std::shared_ptr<Tree<OT>> Solver<OT>::ConstructOptimalTree(const Node<OT>& sol, ADataView& data, const Solver<OT>::Context& context, int max_depth, int num_nodes) {
@@ -1082,6 +1102,7 @@ namespace STreeD {
 
 		auto tree = Tree<OT>::CreateFeatureNodeWithNullChildren(sol.feature);
 
+		// Prepare the split
 		const Branch& branch = context.GetBranch();
 		ADataView left_data, right_data;
 		data_splitter.Split(data, branch, sol.feature, left_data, right_data);
@@ -1170,7 +1191,7 @@ namespace STreeD {
 		}		
 		
 		return tree;
-	}
+	}	
 
 	template <class OT>
 	template <typename U, typename std::enable_if<U::element_additive, int>::type>
@@ -1316,6 +1337,17 @@ namespace STreeD {
 	}
 
 	template <class OT>
+	std::shared_ptr<SolverResult> Solver<OT>::TrainPerformance(const std::shared_ptr<SolverResult>& _result) {
+		const SolverTaskResult<OT>* result = static_cast<const SolverTaskResult<OT>*>(_result.get());
+		auto solver_result = std::make_shared<SolverTaskResult<OT>>(*result);
+		for (size_t i = 0; i < result->NumSolutions(); i++) {
+			auto score = InternalTrainScore<OT>::ComputeTrainPerformance(&data_splitter, task, result->trees[i].get(), train_data);
+			solver_result->SetScore(i, score);
+		}
+		return solver_result;
+	}
+
+	template <class OT>
 	void Solver<OT>::PostProcessTree(std::shared_ptr<Tree<OT>> tree) {
 		tree->FlipFlippedFeatures(flipped_features);
 		if constexpr (OT::postprocess_tree) {
@@ -1361,6 +1393,7 @@ namespace STreeD {
 
 	template class Solver<Accuracy>;
 	template class Solver<CostComplexAccuracy>;
+	template class Solver<AccuracyFlex>;
 	template class Solver<BalancedAccuracy>;
 
 	template class Solver<Regression>;

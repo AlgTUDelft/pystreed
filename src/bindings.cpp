@@ -14,6 +14,7 @@ using namespace STreeD;
 enum task_type {
     accuracy,
     cost_complex_accuracy,
+    accuracy_flex,
     balanced_accuracy,
     regression,
     cost_complex_regression,
@@ -31,6 +32,7 @@ enum task_type {
 task_type get_task_type_code(std::string& task) {
     if (task == "accuracy") return accuracy;
     else if (task == "cost-complex-accuracy") return cost_complex_accuracy;
+    else if (task == "accuracy-flex") return accuracy_flex;
     else if (task == "balanced-accuracy") return balanced_accuracy;
     else if (task == "regression") return regression;
     else if (task == "cost-complex-regression") return cost_complex_regression;
@@ -170,6 +172,8 @@ py::class_<Solver<OT>> DefineSolver(py::module& m, const std::string& name) {
     tree.def_readonly("right_child", &Tree<OT>::right_child, "Return a reference to the right child node.");
     tree.def_readonly("feature", &Tree<OT>::feature, "Get the index of the feature on this branching node.");
     tree.def_readonly("label", &Tree<OT>::label, "Get the label of this leaf node.");
+    tree.def_readonly("num_instances_per_class", &Tree<OT>::num_instances_per_class, "Get the number of training instances per class in this node.");
+    tree.def_readonly("num_instances", &Tree<OT>::num_instances, "Get the number of training instances in this node.");
 
     return solver;
 }
@@ -217,6 +221,7 @@ PYBIND11_MODULE(cstreed, m) {
     });
 
     solver_result.def("question_length", [](const SolverResult& solver_result) {
+        py::scoped_ostream_redirect stream(std::cout, py::module_::import("sys").attr("stdout"));
         return solver_result.scores[solver_result.best_index]->average_path_length;
     });
 
@@ -262,6 +267,11 @@ PYBIND11_MODULE(cstreed, m) {
     ExposeFloatProperty(parameter_handler, "ridge-penalty", "ridge_penalty");
     ExposeStringProperty(parameter_handler, "regression-bound", "regression_lower_bound");
     ExposeFloatProperty(parameter_handler, "discrimination-limit", "discrimination_limit");
+    ExposeFloatProperty(parameter_handler, "confidence-coefficient", "confidence_coefficient");
+    ExposeStringProperty(parameter_handler, "accuracy-objective", "accuracy_objective");
+    ExposeStringProperty(parameter_handler, "tune-method", "tune_method");
+    ExposeIntegerProperty(parameter_handler, "num-hyper-params", "num_hyper_params");
+    ExposeIntegerProperty(parameter_handler, "num-hyper-runs", "num_hyper_runs");
     ExposeIntegerProperty(parameter_handler, "num-extra-cols", "num_extra_cols");
     
     /*************************************
@@ -275,6 +285,7 @@ PYBIND11_MODULE(cstreed, m) {
 
     DefineSolver<Accuracy>(m, "Accuracy");
     DefineSolver<CostComplexAccuracy>(m, "CostComplexAccuracy");
+    DefineSolver<AccuracyFlex>(m, "AccuracyFlex");
     DefineSolver<BalancedAccuracy>(m, "BalancedAccuracy");
     DefineSolver<F1Score>(m, "F1Score");
     DefineSolver<Regression>(m, "Regression");
@@ -302,6 +313,7 @@ PYBIND11_MODULE(cstreed, m) {
         switch(get_task_type_code(task)) {
             case accuracy: solver = new Solver<Accuracy>(parameters, &rng); break;
             case cost_complex_accuracy: solver = new Solver<CostComplexAccuracy>(parameters, &rng); break;
+            case accuracy_flex: solver = new Solver<AccuracyFlex>(parameters, &rng); break;
             case balanced_accuracy: solver = new Solver<BalancedAccuracy>(parameters, &rng); break;
             case regression: solver = new Solver<Regression>(parameters, &rng); break;
             case cost_complex_regression: solver = new Solver<CostComplexRegression>(parameters, &rng); break;

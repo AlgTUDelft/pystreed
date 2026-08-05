@@ -40,6 +40,7 @@ namespace STreeD {
 			return results;
 		}
 
+		const int depth = context.GetBranch().Depth();
 		typename TerminalSolver<OT>::SolType left_sol;
 		typename TerminalSolver<OT>::SolType right_sol;
 		int  total0, total1;
@@ -49,6 +50,7 @@ namespace STreeD {
 		
 		auto& branch = context.GetBranch();
 		std::vector<int> features; features.reserve(num_features);
+
 		for (int f1 = 0; f1 < num_features; f1++) {
 			if (!task->MayBranchOnFeature(f1)) continue;
 			if (branch.HasBranchedOnFeature(f1)) continue;
@@ -90,7 +92,7 @@ namespace STreeD {
 				}
 
 				for (int label = 0; label < num_labels; label++) {
-					cost_calculator.CalcSols(counts, sols[label], label, index);
+					cost_calculator.CalcSols(counts, sols[label], label, depth + 2, index);
 				}
 				auto& child_info_f1 = children_info[f1];
 				auto& child_info_f2 = children_info[f2];
@@ -160,6 +162,7 @@ namespace STreeD {
 		runtime_assert(initialized); // for now
 		auto& result = results.one_node_solutions;
 		SetSolSizeBudget<OT>(result, 1, 1);
+		const int depth = context.GetBranch().Depth();
 
 		Node<OT> node;
 		typename TerminalSolver<OT>::SolType merged_sol;
@@ -167,7 +170,7 @@ namespace STreeD {
 			typename OT::SolLabelType out_label;
 			for (int label = 0; label < data.NumLabels(); label++) {
 				//node = Node<OT>(label, task->GetLeafCosts(data, context, label));
-				cost_calculator.CalcLeafSol(merged_sol, label, out_label);
+				cost_calculator.CalcLeafSol(merged_sol, label, depth, out_label);
 				node.Set(INT32_MAX, out_label, merged_sol, 0, 0);
 
 				if (OT::has_constraint && !SatisfiesConstraint(node, context)) continue;
@@ -187,8 +190,9 @@ namespace STreeD {
 				cost_calculator.GetCounts(counts, index);
 				runtime_assert(counts.count00 + counts.count11 >= solver_parameters->minimum_leaf_node_size); // If even a leaf node is too small, D2-solver should not be called
 				if (counts.count00 < solver_parameters->minimum_leaf_node_size || counts.count11 < solver_parameters->minimum_leaf_node_size) continue;
+
 				for (int label = 0; label < num_labels; label++) {
-					cost_calculator.CalcSols(counts, sols[label], label, index);
+					cost_calculator.CalcSols(counts, sols[label], label, depth + 1, index);
 				}
 				auto branching_costs = cost_calculator.GetBranchingCosts(feature);
 
@@ -247,7 +251,7 @@ namespace STreeD {
 		const auto& right_context = child_info.right_context;
 		Counts counts;
 		IndexInfo index;
-		
+		const int depth = context.GetBranch().Depth();
 		auto left_leaves = InitializeSol<OT>();
 		auto right_leaves = InitializeSol<OT>();
 
@@ -264,7 +268,7 @@ namespace STreeD {
 		if (left_size >= solver_parameters->minimum_leaf_node_size) {
 			for (int label = 0; label < num_labels; label++) {
 				costs = cost_calculator.GetCosts00(label, root_feature, root_feature);
-				task->ComputeD2Costs(costs, left_size, leaf_sol);
+				task->ComputeD2Costs(costs, left_size, label, depth + 1, leaf_sol);
 				assign_label = cost_calculator.GetLabel(label, costs, left_size);
 				node.Set(INT32_MAX, assign_label, leaf_sol, 0, 0);
 				//node.Set(INT32_MAX, OT::worst_label, sols[label].sol00, 0, 0);
@@ -276,7 +280,7 @@ namespace STreeD {
 		if (right_size >= solver_parameters->minimum_leaf_node_size) {
 			for (int label = 0; label < num_labels; label++) {
 				costs = cost_calculator.GetCosts11(label, root_feature, root_feature);
-				task->ComputeD2Costs(costs, right_size, leaf_sol);
+				task->ComputeD2Costs(costs, right_size, label, depth + 1, leaf_sol);
 				assign_label = cost_calculator.GetLabel(label, costs, right_size);
 				node.Set(INT32_MAX, assign_label, leaf_sol, 0, 0);
 				//node.Set(INT32_MAX, OT::worst_label, sols[label].sol11, 0, 0);
@@ -378,12 +382,13 @@ namespace STreeD {
 		std::vector<TreeNode<OT>> right_solutions;
 		TreeNode<OT> left_solution, right_solution, tree_node;
 		Node<OT> left_node, right_node;
+		const int depth = context.GetBranch().Depth();
 
 		Counts counts;
 		cost_calculator.GetCounts(counts, node.feature, node.feature);
 
 		for (int label = 0; label < num_labels; label++) {
-			cost_calculator.CalcSols(counts, sols[label], label, node.feature, node.feature);
+			cost_calculator.CalcSols(counts, sols[label], label, depth + 1, node.feature, node.feature);
 		}
 		if (node.num_nodes_left == 0) {
 			for (int left_label = 0; left_label < num_labels; left_label++) {
@@ -425,7 +430,7 @@ namespace STreeD {
 				cost_calculator.GetCounts(counts, node.feature, f2);
 				
 				for (int label = 0; label < num_labels; label++) {
-					cost_calculator.CalcSols(counts, sols[label], label, node.feature, f2);
+					cost_calculator.CalcSols(counts, sols[label], label, depth + 2, node.feature, f2);
 				}
 				if (node.num_nodes_left > 0 && counts.count00 >= solver_parameters->minimum_leaf_node_size && counts.count01 >= solver_parameters->minimum_leaf_node_size) {
 					auto branching_costs = cost_calculator.GetBranchingCosts0(counts.count00 + counts.count01, node.feature, f2);
@@ -499,6 +504,7 @@ namespace STreeD {
 
 	template class TerminalSolver<Accuracy>;
 	template class TerminalSolver<CostComplexAccuracy>;
+	template class TerminalSolver<AccuracyFlex>;
 	template class TerminalSolver<BalancedAccuracy>;
 
 	template class TerminalSolver<Regression>;

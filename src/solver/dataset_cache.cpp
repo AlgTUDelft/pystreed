@@ -251,6 +251,7 @@ namespace STreeD {
 
 	template class DatasetCache<Accuracy>;
 	template class DatasetCache<CostComplexAccuracy>;
+	template class DatasetCache<AccuracyFlex>;
 	template class DatasetCache<BalancedAccuracy>;
 
 	template class DatasetCache<Regression>;

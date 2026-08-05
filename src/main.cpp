@@ -45,6 +45,9 @@ int main(int argc, char* argv[]) {
 	if (task == "accuracy") {
 		solver = new STreeD::Solver<STreeD::Accuracy>(parameters, &rng);
 		STreeD::FileReader::ReadData<STreeD::Accuracy>(parameters, data, train_data, test_data, &rng);
+	} else if (task == "accuracy-flex") {
+		solver = new STreeD::Solver<STreeD::AccuracyFlex>(parameters, &rng);
+		STreeD::FileReader::ReadData<STreeD::AccuracyFlex>(parameters, data, train_data, test_data, &rng);
 	} else if (task == "cost-complex-accuracy") {
 		solver =  new STreeD::Solver<STreeD::CostComplexAccuracy>(parameters, &rng);
 		STreeD::FileReader::ReadData<STreeD::CostComplexAccuracy>(parameters, data, train_data, test_data, &rng);

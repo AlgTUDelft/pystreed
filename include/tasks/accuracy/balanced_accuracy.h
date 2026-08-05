@@ -33,7 +33,7 @@ namespace STreeD {
 		}
 		
 		// Compute the solution value from a terminal solution value
-		void ComputeD2Costs(const int64_t& d2costs, int count, int64_t& costs) const { costs = d2costs; }
+		void ComputeD2Costs(const int64_t& d2costs, int count, int label, int depth, int64_t& costs) const { costs = d2costs; }
 		
 		// Return true if the terminal solution value is zero
 		inline bool IsD2ZeroCost(const int64_t d2costs) const { return d2costs == 0; }

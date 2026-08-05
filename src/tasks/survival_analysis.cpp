@@ -182,11 +182,11 @@ namespace STreeD {
 	}
 
 	// Compute the loss from the given depth-two cost tuple
-	void SurvivalAnalysis::ComputeD2Costs(const D2SASol& d2costs, int count, double& costs) const {
+	void SurvivalAnalysis::ComputeD2Costs(const D2SASol& d2costs, int count, int label, int depth, double& costs) const {
 		costs = std::max(0.0, d2costs.negative_log_hazard_sum - d2costs.event_sum * log(std::max(0.5, double(d2costs.event_sum)) / d2costs.hazard_sum));
 	}
 
-	// Get the mak-likelihood theta estimate for the given depth-two cost tuple
+	// Get the max-likelihood theta estimate for the given depth-two cost tuple
 	double SurvivalAnalysis::GetLabel(const D2SASol& costs, int count) const {
 		runtime_assert(costs.hazard_sum > 0);
 		return std::max(0.5, double(costs.event_sum)) / costs.hazard_sum;
@@ -194,7 +194,6 @@ namespace STreeD {
 
 	TuneRunConfiguration SurvivalAnalysis::GetTuneRunConfiguration(const ParameterHandler& default_config, const ADataView& data, int phase) {
 		TuneRunConfiguration config = OptimizationTask::GetTuneRunConfiguration(default_config, data, phase);
-		config.runs = 10;
 		return config;
 	}
 

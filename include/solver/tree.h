@@ -76,11 +76,22 @@ namespace STreeD {
 		void ComputeTrainScore(DataSplitter* data_splitter, OT* task, const typename OT::ContextType& context,
 			const ADataView& train_data, InternalTrainScore<OT>& result) const {
 			result.average_path_length += train_data.Size();
+			
+			// Store the number of instances (per class) for the training data
+			num_instances = train_data.Size();
+			num_instances_per_class.resize(train_data.NumLabels());
+			for (int i = 0; i < train_data.NumLabels(); i++) {
+				num_instances_per_class[i] = train_data.NumInstancesForLabel(i);
+			}			
+
+			// Compute the training score for leaf nodes
 			if (IsLabelNode()) {
 				result.train_value = OT::Add(result.train_value, task->GetLeafCosts(train_data, context, label));
 				result.train_test_value = OT::TestAdd(result.train_test_value, task->GetTestLeafCosts(train_data, context, label));
 				return;
 			}
+
+			// Recursively compute the training score for the left and right subtree
 			typename OT::ContextType left_context, right_context;
 			task->GetLeftContext(train_data, context, feature, left_context); 
 			task->GetRightContext(train_data, context, feature, right_context);
@@ -169,6 +180,8 @@ namespace STreeD {
 		int feature{ INT32_MAX };
 		typename OT::SolLabelType label{ OT::worst_label };
 		std::shared_ptr<Tree<OT>> left_child, right_child;
+		mutable std::vector<int> num_instances_per_class;
+		mutable int num_instances;
 	};
 
 }

@@ -30,7 +30,7 @@ namespace STreeD {
 		costs.yys = multiplier * linstance->GetLabel() * linstance->GetLabel();
 	}
 
-	void Regression::ComputeD2Costs(const D2RegressionSol& d2costs, int count, double& costs) const {
+	void Regression::ComputeD2Costs(const D2RegressionSol& d2costs, int count, int label, int depth, double& costs) const {
 		if (count == 0) {
 			costs = 0;
 			return;

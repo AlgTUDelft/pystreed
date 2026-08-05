@@ -49,7 +49,7 @@ namespace STreeD {
 				: F1ScoreSol({ 0, org_label == 0 ? multiplier : 0 });
 		}
 		inline bool IsD2ZeroCost(const F1ScoreSol& d2costs) const { return d2costs.false_negatives == 0 && d2costs.false_positives == 0; }
-		void ComputeD2Costs(const F1ScoreSol& d2costs, int count, F1ScoreSol& costs) const { costs = d2costs; }
+		void ComputeD2Costs(const F1ScoreSol& d2costs, int count, int label, int depth, F1ScoreSol& costs) const { costs = d2costs; }
 		inline F1ScoreSol GetWorstPerLabel(int label) const { return label == 0 ? F1ScoreSol({ 0, 1 }) : F1ScoreSol({ 1, 0 }); }
 		
 		double ComputeTrainScore(const F1ScoreSol& train_value) const;

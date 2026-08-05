@@ -160,6 +160,11 @@ namespace STreeD {
 		std::shared_ptr<SolverResult> HyperSolve(const ADataView& train_data);
 
 		/*
+		* Returns the train performance over train data given the trees in result
+		*/
+		std::shared_ptr<SolverResult> TrainPerformance(const std::shared_ptr<SolverResult>& result);
+
+		/*
 		* Returns the test performance over test data given the trees in result
 		*/
 		std::shared_ptr<SolverResult> TestPerformance(const std::shared_ptr<SolverResult>& result, const ADataView& test_data);

@@ -27,6 +27,7 @@ class STreeDGroupFairnessClassifier(BaseSTreeDSolver):
                  use_similarity_lower_bound: bool = True,
                  use_upper_bound: bool = True,
                  use_lower_bound: bool = True,
+                 num_hyper_runs : int = 5,
                  verbose : bool = False,
                  random_seed: int = 27, 
                  continuous_binarize_strategy: str = 'quantile',
@@ -49,6 +50,7 @@ class STreeDGroupFairnessClassifier(BaseSTreeDSolver):
             use_similarity_lower_bound: Enable/Disable the similarity lower bound (Enabled typically results in a large runtime advantage)
             use_upper_bound: Enable/Disable the use of upper bounds (Enabled is typically faster)
             use_lower_bound: Enable/Disable the use of lower bounds (Enabled is typically faster)
+            num_hyper_runs: the number of validation runs per configuration when tuning the hyperparameters
             verbose: Enable/Disable verbose output
             random_seed: the random seed used by the solver (for example when creating folds)
             continuous_binarization_strategy: the strategy used for binarizing continuous features
@@ -72,6 +74,7 @@ class STreeDGroupFairnessClassifier(BaseSTreeDSolver):
             use_similarity_lower_bound=use_similarity_lower_bound,
             use_upper_bound=use_upper_bound,
             use_lower_bound=use_lower_bound,
+            num_hyper_runs=num_hyper_runs,
             verbose=verbose,
             random_seed=random_seed,
             continuous_binarize_strategy=continuous_binarize_strategy,

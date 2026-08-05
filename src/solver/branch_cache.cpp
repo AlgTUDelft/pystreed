@@ -239,6 +239,7 @@ namespace STreeD {
 
 	template class BranchCache<Accuracy>;
 	template class BranchCache<CostComplexAccuracy>;
+	template class BranchCache<AccuracyFlex>;
 	template class BranchCache<BalancedAccuracy>;
 
 	template class BranchCache<Regression>;

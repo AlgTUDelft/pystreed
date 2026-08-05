@@ -37,4 +37,8 @@ namespace STreeD {
 		runtime_assert(index_row <= index_column);
 		return num_features * index_row + index_column - index_row * (index_row + 1) / 2;
 	}
+
+	int Counter::IndexSymmetricMatrix(int index_row_col)  const {
+		return num_features * index_row_col + index_row_col - index_row_col * (index_row_col + 1) / 2;
+	}
 }

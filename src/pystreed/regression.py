@@ -36,6 +36,7 @@ class STreeDRegressor(BaseSTreeDSolver, RegressorMixin):
                  use_lower_bound: bool = True,
                  use_task_lower_bound: bool = True,
                  upper_bound: float = 2**31 - 1,
+                 num_hyper_runs : int = 5,
                  verbose : bool = False,
                  print_intermediates : bool = False,
                  random_seed: int = 27, 
@@ -65,6 +66,7 @@ class STreeDRegressor(BaseSTreeDSolver, RegressorMixin):
             use_lower_bound: Enable/Disable the use of lower bounds (Enabled is typically faster)
             use_task_lower_bound: Enable/Disable the kmeans/equivalent lower bound for cost-complex-regression (typically faster)
             upper_bound: Search for a tree better than the provided upper bound
+            num_hyper_runs: the number of validation runs per configuration when tuning the hyperparameters
             verbose: Enable/Disable verbose output
             print_intermediates: Enable/Disable printing intermediate solutions
             random_seed: the random seed used by the solver (for example when creating folds)
@@ -91,6 +93,7 @@ class STreeDRegressor(BaseSTreeDSolver, RegressorMixin):
             use_upper_bound=use_upper_bound,
             use_lower_bound=use_lower_bound,
             upper_bound=upper_bound,
+            num_hyper_runs=num_hyper_runs,
             verbose=verbose,
             print_intermediates=print_intermediates,
             random_seed=random_seed,
@@ -132,6 +135,7 @@ class STreeDPiecewiseLinearRegressor(BaseSTreeDSolver):
                  use_upper_bound: bool = True,
                  use_lower_bound: bool = True,
                  upper_bound: float = 2**31 - 1,
+                 num_hyper_runs : int = 5,
                  verbose : bool = False,
                  print_intermediates : bool = False,
                  random_seed: int = 27, 
@@ -182,6 +186,7 @@ class STreeDPiecewiseLinearRegressor(BaseSTreeDSolver):
             use_upper_bound=use_upper_bound,
             use_lower_bound=use_lower_bound,
             upper_bound=upper_bound,
+            num_hyper_runs=num_hyper_runs,
             verbose=verbose,
             print_intermediates=print_intermediates,
             random_seed=random_seed,

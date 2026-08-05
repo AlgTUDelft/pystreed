@@ -294,7 +294,7 @@ namespace STreeD {
         bool optional = parameters_string_[parameter_name].optional;
         if (optional && value == "") return;
         if (!allowed_values.empty() && std::find(allowed_values.begin(), allowed_values.end(), value) == allowed_values.end()) {
-            std::cout << "The passed value " << value << " is not in the list of allowed values for string parameter " << value << "\n";
+            std::cout << "The passed value " << value << " is not in the list of allowed values for string parameter " << parameter_name << "\n";
             std::cout << "Allowed values: ";
             for (size_t i = 0; i < allowed_values.size() - 1; i++) {
                 std::cout << allowed_values[i] << ", ";

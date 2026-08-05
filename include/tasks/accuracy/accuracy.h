@@ -29,7 +29,7 @@ namespace STreeD {
 		inline void GetInstanceLeafD2Costs(const AInstance* instance, int org_label, int label, int& costs, int multiplier) const { costs = multiplier * ((org_label == label) ? 0 : 1); }
 		
 		// Compute the solution value from a terminal solution value
-		void ComputeD2Costs(const int& d2costs, int count, int& costs) const { costs = d2costs; }
+		void ComputeD2Costs(const int& d2costs, int count, int label, int depth, int& costs) const { costs = d2costs; }
 		
 		// Return true if the terminal solution value is zero
 		inline bool IsD2ZeroCost(const int d2costs) const { return d2costs == 0; }

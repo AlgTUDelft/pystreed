@@ -84,7 +84,7 @@ namespace STreeD {
 
 		inline bool IsD2ZeroCost(const EqOppSol& d2costs) const { return false; }
 
-		void ComputeD2Costs(const EqOppSol& d2costs, int count, EqOppSol& costs) const { costs = d2costs; }
+		void ComputeD2Costs(const EqOppSol& d2costs, int count, int label, int depth, EqOppSol& costs) const { costs = d2costs; }
 		inline EqOppSol GetWorstPerLabel(int label) const {
 			return label ?
 				EqOppSol({ 1, 1.0 / train_group1_size, 1.0 / train_group0_size }) :

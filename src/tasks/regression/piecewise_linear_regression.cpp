@@ -598,7 +598,6 @@ namespace STreeD {
 			config.skip_when_max_tree = false;
 		}
 		config.reset_solver = true;
-		config.runs = 5;
 		return config;
 	}
 

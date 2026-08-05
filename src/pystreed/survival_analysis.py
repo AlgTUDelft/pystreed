@@ -32,34 +32,14 @@ class STreeDSurvivalAnalysis(BaseSTreeDSolver):
                  use_upper_bound: bool = True,
                  use_lower_bound: bool = True,
                  upper_bound: float = 2**31 - 1,
+                 num_hyper_runs : int = 10,
                  verbose : bool = False,
                  print_intermediates : bool = False,
                  random_seed: int = 27, 
                  continuous_binarize_strategy: str = 'quantile',
                  n_thresholds: int = 5,
                  n_categories: int = 5):
-        BaseSTreeDSolver.__init__(self, "survival-analysis",
-            max_depth=max_depth,
-            max_num_nodes=max_num_nodes,
-            min_leaf_node_size=min_leaf_node_size,
-            time_limit=time_limit,
-            feature_ordering="in-order",
-            hyper_tune = hyper_tune,
-            use_branch_caching=use_branch_caching,
-            use_dataset_caching=use_dataset_caching,
-            use_terminal_solver=use_terminal_solver,
-            use_similarity_lower_bound=False,
-            use_upper_bound=use_upper_bound,
-            use_lower_bound=use_lower_bound,
-            upper_bound=upper_bound,
-            verbose=verbose,
-
-            random_seed=random_seed,
-            continuous_binarize_strategy=continuous_binarize_strategy,
-            n_thresholds=n_thresholds,
-            n_categories=n_categories)
-        self._label_type = np.double
-    """
+        """
         Construct a STreeDSurvivalAnalysis solver
 
         Parameters:
@@ -76,6 +56,7 @@ class STreeDSurvivalAnalysis(BaseSTreeDSolver):
             use_upper_bound: Enable/Disable the use of upper bounds (Enabled is typically faster)
             use_lower_bound: Enable/Disable the use of lower bounds (Enabled is typically faster)
             upper_bound: Search for a tree better than the provided upper bound
+            num_hyper_runs: the number of validation runs per configuration when tuning the hyperparameters
             verbose: Enable/Disable verbose output
             print_intermediates: Enable/Disable printing intermediate solutions
             random_seed: the random seed used by the solver (for example when creating folds)
@@ -83,6 +64,28 @@ class STreeDSurvivalAnalysis(BaseSTreeDSolver):
             n_thresholds: the number of thresholds to use per continuous feature
             n_categories: the number of categories to use per categorical feature
         """
+        BaseSTreeDSolver.__init__(self, "survival-analysis",
+            max_depth=max_depth,
+            max_num_nodes=max_num_nodes,
+            min_leaf_node_size=min_leaf_node_size,
+            time_limit=time_limit,
+            feature_ordering="in-order",
+            hyper_tune = hyper_tune,
+            use_branch_caching=use_branch_caching,
+            use_dataset_caching=use_dataset_caching,
+            use_terminal_solver=use_terminal_solver,
+            use_similarity_lower_bound=False,
+            use_upper_bound=use_upper_bound,
+            use_lower_bound=use_lower_bound,
+            upper_bound=upper_bound,
+            num_hyper_runs=num_hyper_runs,
+            verbose=verbose,
+            print_intermediates=print_intermediates,
+            random_seed=random_seed,
+            continuous_binarize_strategy=continuous_binarize_strategy,
+            n_thresholds=n_thresholds,
+            n_categories=n_categories)
+        self._label_type = np.double
 
     def _process_extra_data(self, X, events):
         """

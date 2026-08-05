@@ -37,7 +37,7 @@ namespace STreeD {
 		}
 		double Classify(const AInstance*, double label) const { return label; }
 		void GetInstanceLeafD2Costs(const AInstance* instance, int org_label, int label, D2RegressionSol& costs, int multiplier) const;
-		void  ComputeD2Costs(const D2RegressionSol& d2costs, int count, double& costs) const;
+		void  ComputeD2Costs(const D2RegressionSol& d2costs, int count, int label, int depth, double& costs) const;
 		inline bool IsD2ZeroCost(const D2RegressionSol& d2costs) const { return d2costs.ys <= 1e-6 && d2costs.yys <= 1e-6 && d2costs.ys >= -1e-6 && d2costs.yys >= -1e-6; }
 		double GetLabel(const D2RegressionSol& costs, int count) const;
 		inline double GetWorstPerLabel(int label) const { return DBL_MAX; }

@@ -72,7 +72,7 @@ namespace STreeD {
 		inline double ComputeD2BranchingCosts(const double& d2costs, int count) const { return d2costs * count; }
 
 		void GetInstanceLeafD2Costs(const AInstance* instance, int org_label, int label, double& costs, int multiplier) const;
-		inline void ComputeD2Costs(const double& d2costs, int count, double& costs) const { costs = d2costs; }
+		inline void ComputeD2Costs(const double& d2costs, int count, int label, int depth, double& costs) const { costs = d2costs; }
 		inline bool IsD2ZeroCost(const double d2costs) const { return d2costs == 0; }
 		inline double GetWorstPerLabel(int label) const { return cost_specifier.max_instance_costs; } // todo: differentiate per label
 

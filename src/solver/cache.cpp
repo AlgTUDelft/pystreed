@@ -84,6 +84,7 @@ namespace STreeD {
 
 	template class Cache<Accuracy>;
 	template class Cache<CostComplexAccuracy>;
+	template class Cache<AccuracyFlex>;
 	template class Cache<BalancedAccuracy>;
 
 	template class Cache<Regression>;

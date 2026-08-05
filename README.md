@@ -2,7 +2,7 @@
 [![Pip install](https://github.com/algtudelft/pystreed/actions/workflows/pip.yml/badge.svg)](https://github.com/algtudelft/pystreed/actions/workflows/pip.yml)
 
 # STreeD: Separable Trees with Dynamic programming
-By: Jacobus G. M. van der Linden [(e-mail)](mailto:J.G.M.vanderLinden@tudelft.nl)
+By: Jacobus G. M. van der Linden [(e-mail)](mailto:J.G.M.vanderLinden@tudelft.nl) [(website)](https://kjgm.github.io)
 
 STreeD is a framework for optimal binary decision trees with _separable_ optimization tasks. A separable optimization task is a task that can be optimized separately for the left and right subtree. The current STreeD Framework implements a broad set of such optimization tasks, from group fairness constraints to regression.
 * Classification (accuracy, accuracy with a sparsity cost, f1-score)
@@ -13,10 +13,11 @@ STreeD is a framework for optimal binary decision trees with _separable_ optimiz
 * Prescriptive policy generation
 
 For an explanation of each application, see below.
-For details on what tasks are separable and how the algoritm works, see our paper and the follow up papers on survival analysis and regression:
+For details on what tasks are separable and how the algoritm works, see our paper and the follow up papers on survival analysis, regression, and an extensive comparison with the traditional greedy approach CART:
 * Van der Linden, Jacobus G. M., Mathijs M. de Weerdt, and Emir Demirović. "Necessary and Sufficient Conditions for Optimal Decision Trees using Dynamic Programming." _Advances in Neural Information Processing Systems_ (2023). [pdf](https://arxiv.org/pdf/2305.19706) 
 * Huisman, Tim, Jacobus G. M. van der Linden, and Emir Demirović. "Optimal Survival Trees: A Dynamic Programming Approach." _Proceedings of AAAI-24_ (2024). [pdf](https://ojs.aaai.org/index.php/AAAI/article/view/29163/30199)
 * Van den Bos, Mim, Jacobus G. M. van der Linden, and Emir Demirović. "Piecewise Constant and Linear Regression Trees: An Optimal Dynamic Programming Approach." In _Proceedings of ICML-24_ (2024). [pdf](https://openreview.net/pdf?id=rXnBvu5D7i)
+* Van der Linden, Jacobus G. M., Daniël Vos, Mathijs M. de Weerdt, Sicco Verwer, and Emir Demirović. "Optimal or Greedy Decision Trees? Revisiting their Objectives, Tuning, and Performance" _Transactions of Machine Learning Research_ (2026). [pdf](https://arxiv.org/pdf/2409.12788)
 
 ## Python usage
 
@@ -113,6 +114,30 @@ Currently, STreeD implements the following optimization tasks:
 * `accuracy`: Minimizes the misclassification score. 
 * `cost-complex-accuracy`: Minimizes the misclassification score plus the cost for adding a branching node by the parameter `cost_complexity`.
 * `f1-score`: Maximizes the F1-score.
+* `accuracy-flex`: Minimizes a variety of classification objectives, which can be set through the `accuracy_objective` parameter:
+   * `misclassification-score`: The number of misclassifications.
+   * `gini-index`: The Gini impurity.
+   * `entropy`: The entropy / information metric.
+   * `mdl-quinlan`: The minimum description length based on the encoding by Quinlan and Rivest (1986).
+   * `mdl-mehta`: The minimum description length based on the encoding by Mehta et al. (1995).
+   * `pessimistic-binomial`: The objective used by C4.5 presented in Quinlan (1993). The confidence level can be set by the `confidence_coefficient` parameter.
+   * `bayes`: A Bayesian likelihood objective based on a Beta distribution.
+   * `l-loss`: A non-concave loss proposed by Noel et al. (2023).
+   * `m-loss`: A non-concave loss proposed by Noel et al. (2023).
+   * `sqrt-gini`: The square root of the Gini impurity.
+   * `min-error`: The minimum error by Niblett (1987), which is equivalent to the missclassification score with a smoothing factor of one.
+   
+   Additionally, `accuracy-flex` supports a variety of hyperparameter tuning  methods, which can be set through the `tune_method` parameter:
+   * `tree-size`: Tunes the number of nodes and the depth.
+   * `cost-complexity`: Tunes the cost of adding a node.
+   * `weighted-cost-complexity`: Tunes the cost of adding a node, weighted by the number of training instances in that node.
+   * `min-leaf-node-size`: Tunes the minimum number of instances required for a leaf node.
+   * `depth`: Tunes the depth of the tree.
+   * `smoothing`: Tunes the smoothing factor.
+
+   The number of hyperparameter options that should be tried can be set by the `num_hyper_params` parameter.
+
+   See our paper "Optimal or Greedy Decision Trees? Revisiting their Objectives, Tuning, and Performance" [(pdf)](https://arxiv.org/pdf/2409.12788) for more information.
 
 See [examples/accuracy_example.py](examples/accuracy_example.py) for an example.
 
@@ -215,6 +240,7 @@ STreeD can be configured by the following parameters:
 * `use_similarity_lower_bound` : Enables or disables the use of the similarity lower bound.
 * `use_upper_bound` : Enables or disables the use of upper bounds.
 * `use_lower_bound` : Enables or disables the use of lower bounds.
+* `num_hyper_runs` : The number of runs and splits during the hyperparameter tuning.
 * `verbose` : Enable or disable verbose output.
 * `random_seed` : The random seed.
 

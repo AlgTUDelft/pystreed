@@ -20,8 +20,8 @@ class BaseSTreeDSolver(BaseEstimator):
                                           "regression", "cost-complex-regression", 
                                           "piecewise-linear-regression", "simple-linear-regression",
                                           "cost-sensitive", "f1-score", "prescriptive-policy", "instance-cost-sensitive",
-                                          "group-fairness", "equality-of-opportunity",
-                                          "survival-analysis"})],
+                                          "group-fairness", "equality-of-opportunity", "survival-analysis",
+                                          "accuracy-flex"})],
         "max_depth": [Interval(numbers.Integral, 0, 20, closed="both")],
         "max_num_nodes": [Interval(numbers.Integral, 0, 1048575, closed="both"), None],
         "min_leaf_node_size": [Interval(numbers.Integral, 1, None, closed="left")],
@@ -33,7 +33,9 @@ class BaseSTreeDSolver(BaseEstimator):
         "n_thresholds": [Interval(numbers.Integral, 1, None, closed="left")],
         "n_categories": [Interval(numbers.Integral, 2, None, closed="left")],
         "continuous_binarize_strategy": [StrOptions({"tree", "quantile", "uniform"})],
-        "max_num_binary_features": [Interval(numbers.Integral, 1, None, closed="left"), None]
+        "max_num_binary_features": [Interval(numbers.Integral, 1, None, closed="left"), None],
+        "num_hyper_params": [Interval(numbers.Integral, 1, None, closed="left")],
+        "num_hyper_runs": [Interval(numbers.Integral, 1, None, closed="left")]
     }
 
     def __init__(self, 
@@ -53,6 +55,8 @@ class BaseSTreeDSolver(BaseEstimator):
             use_upper_bound: bool = True,
             use_lower_bound: bool = True,
             upper_bound: float = 2**31-1,
+            num_hyper_params: int = 10,
+            num_hyper_runs: int = 5,
             verbose: bool = False,
             print_intermediates: bool = False,
             random_seed: int = 27, 
@@ -80,6 +84,8 @@ class BaseSTreeDSolver(BaseEstimator):
             use_upper_bound: Enable/Disable the use of upper bounds (Enabled is typically faster)
             use_lower_bound: Enable/Disable the use of lower bounds (Enabled is typically faster)
             upper_bound: Search for a tree better than the provided upper bound
+            num_hyper_params: the maximum number of hyperparameter settings to test
+            num_hyper_runs: the number of validation runs per configuration when tuning the hyperparameters
             verbose: Enable/Disable verbose output
             print_intermediates: Enable/Disable printing intermediate solutions
             random_seed: the random seed used by the solver (for example when creating folds)
@@ -88,7 +94,6 @@ class BaseSTreeDSolver(BaseEstimator):
             n_categories: the number of categories to use per categorical feature
             max_num_binary_features: the maximum number of binary features (selected by random forest feature importance)
         """
-        
         self.optimization_task   : str   = optimization_task
         self.max_depth           : int   = max_depth
         self.max_num_nodes       : Optional[int] = max_num_nodes
@@ -105,6 +110,8 @@ class BaseSTreeDSolver(BaseEstimator):
         self.use_upper_bound     : bool  = use_upper_bound
         self.use_lower_bound     : bool  = use_lower_bound
         self.upper_bound         : float = upper_bound
+        self.num_hyper_params    : int   = num_hyper_params
+        self.num_hyper_runs      : int   = num_hyper_runs
         self.verbose             : bool  = verbose
         self.print_intermediates : bool  = print_intermediates
         self.random_seed         : int   = random_seed
@@ -147,6 +154,8 @@ class BaseSTreeDSolver(BaseEstimator):
         self._params.verbose = self.verbose
         self._params.print_intermediates = self.print_intermediates
         self._params.random_seed = self.random_seed
+        self._params.num_hyper_params = self.num_hyper_params
+        self._params.num_hyper_runs = self.num_hyper_runs
 
         self._params.use_branch_caching = self.use_branch_caching
         self._params.use_dataset_caching = self.use_dataset_caching
@@ -392,6 +401,20 @@ class BaseSTreeDSolver(BaseEstimator):
         check_is_fitted(self, "fit_result")
         return self.fit_result.tree_depth()
     
+    def get_train_question_length(self):
+        """
+        Returns the average question length for the training data
+        """
+        check_is_fitted(self, "fit_result")
+        return self.fit_result.question_length()
+
+    def get_test_question_length(self):
+        """
+        Returns the average question length for the training data
+        """
+        check_is_fitted(self, "test_result")
+        return self.test_result.question_length()
+    
     def get_tree(self):
         """
         Returns the fitted tree
@@ -462,14 +485,21 @@ class BaseSTreeDSolver(BaseEstimator):
             self._recursive_export_dot(fh, self.tree_, 0, feature_names, label_names, train_data)
             fh.write("}")
     
+    def _export_dot_node_info(self, node):
+        info = f"\nSamples = {node.num_instances}"
+        if len(node.num_instances_per_class) > 1:
+            info += "\nClass FQ = [{}]".format(", ".join([str(v) for v in node.num_instances_per_class]))
+        return info
+
     def _export_dot_leaf_node(self, fh, node, node_id, label_names, train_data, color=(200, 200, 200)):
-        label =  self._get_label_str(node.label, label_names)
+        label =  "Label = {}{}".format(self._get_label_str(node.label, label_names), self._export_dot_node_info(node))
         hex_color = "#{:02x}{:02x}{:02x}".format(*color)
         hex_line_color = "#{:02x}{:02x}{:02x}".format(*[int(0.4 * c) for c in color])
         fh.write(f"{node_id}  [label=\"{label}\", color=\"{hex_line_color}\" fillcolor=\"{hex_color}\"] ;\n")
 
     def _export_dot_predicate_node(self, fh, node, node_id, feature_names, label_names, train_data):
-        predicate = self._get_predicate_str(node.feature, feature_names,)
+        predicate = self._get_predicate_str(node.feature, feature_names)
+        predicate = "{}{}".format(predicate, self._export_dot_node_info(node))
         fh.write(f"{node_id} [label=\"{predicate}\", color=\"#222222\", fillcolor=\"#EEEEEE\"] ;\n")
 
     def _recursive_export_dot(self, fh, node, node_id, feature_names, label_names, train_data):

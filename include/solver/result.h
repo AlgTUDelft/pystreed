@@ -105,6 +105,7 @@ namespace STreeD {
 		inline bool IsProvenOptimal() const { return is_proven_optimal; }
 		int GetBestDepth() const;
 		int GetBestNodeCount() const;
+		std::shared_ptr <Score> GetBestScore() const { return scores[best_index]; }
 		inline size_t NumSolutions() const { return scores.size(); }
 		inline void SetScore(size_t index, const std::shared_ptr<Score>& score) { scores[index] = score; }
 
@@ -131,7 +132,9 @@ namespace STreeD {
 			tree_strings.insert(tree_strings.begin() + i, tree->ToString());
 		}
 
+		std::shared_ptr<Tree<OT>> GetBestTree() const { return trees[best_index]; }
+
 		std::vector<std::shared_ptr<Tree<OT>>> trees;
-	};
+	};	
 
 }

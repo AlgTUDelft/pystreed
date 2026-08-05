@@ -426,7 +426,7 @@ namespace STreeD {
 		}
 	}
 
-	void SimpleLinearRegression::ComputeD2Costs(const D2SimpleLinRegSol& d2costs, int count, double& costs) const {
+	void SimpleLinearRegression::ComputeD2Costs(const D2SimpleLinRegSol& d2costs, int count, int label, int depth, double& costs) const {
 		if (d2costs.weight < minimum_leaf_node_size) {
 			costs = DBL_MAX;
 			return;
@@ -541,7 +541,6 @@ namespace STreeD {
 			config.skip_when_max_tree = false;
 		}
 		config.reset_solver = true;
-		config.runs = 5;
 		return config;
 	}
 

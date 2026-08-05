@@ -60,7 +60,6 @@ namespace STreeD {
 		static constexpr double worst = DBL_MAX;	// The worst solution is Inf.
 		static constexpr double best = 0;			// The best solutino is zero
 		static const LinearModel worst_label;
-		static constexpr int num_tune_phases = 3;	// Tune in three phases: 1) the lasso and ridge penalties, 2) the complexity cost, 3) again the lasso and ridge penalties
 
 		PieceWiseLinearRegression(const ParameterHandler& parameters) {
 			UpdateParameters(parameters);
@@ -111,6 +110,9 @@ namespace STreeD {
 
 		inline static std::string LabelToString(const LinearModel& label) { return label.ToString(); }
 		inline static std::string SolToString(double sol_val) { return std::to_string(sol_val); }
+
+		// Number of tuning phases in hypertuning 
+		int GetNumberOfTunePhases() const { return 3; }
 
 		static TuneRunConfiguration GetTuneRunConfiguration(const ParameterHandler& default_config, const ADataView& data, int phase);
 

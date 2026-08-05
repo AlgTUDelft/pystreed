@@ -58,7 +58,9 @@ class Binarizer:
         self.continuous_binarizer = None
         self.binary_feature_limiter = None
 
-    def fit(self, X, y):
+    def fit(self, X, y=None):
+        if self.continuous_strategy == "tree" and y is None:
+            raise ValueError("When binarizing using a tree, provide the y label")
         X_cat = None
         X_bin = None
         X_cont = None

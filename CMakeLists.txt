@@ -77,6 +77,7 @@ set(STREED_HEADER_FILES
 	${PROJECT_INCLUDE_DIR}/tasks/survival_analysis.h
 
 	${PROJECT_INCLUDE_DIR}/tasks/accuracy/accuracy.h
+	${PROJECT_INCLUDE_DIR}/tasks/accuracy/accuracy_flex.h
 	${PROJECT_INCLUDE_DIR}/tasks/accuracy/cost_complex_accuracy.h
 	${PROJECT_INCLUDE_DIR}/tasks/accuracy/balanced_accuracy.h
 
@@ -126,6 +127,7 @@ set(STREED_SRC_FILES
 	${PROJECT_SOURCE_DIR}/tasks/survival_analysis.cpp
 
 	${PROJECT_SOURCE_DIR}/tasks/accuracy/accuracy.cpp
+	${PROJECT_SOURCE_DIR}/tasks/accuracy/accuracy_flex.cpp
 	${PROJECT_SOURCE_DIR}/tasks/accuracy/cost_complex_accuracy.cpp
 	${PROJECT_SOURCE_DIR}/tasks/accuracy/balanced_accuracy.cpp
 

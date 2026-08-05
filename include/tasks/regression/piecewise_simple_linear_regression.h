@@ -82,7 +82,7 @@ namespace STreeD {
 		double GetBranchingCosts(const BranchContext& context, int feature) const { return branching_cost; }
 		double ComputeD2BranchingCosts(const double& d2costs, int count) const { return d2costs; }
 
-		void  ComputeD2Costs(const D2SimpleLinRegSol& d2costs, int count, double& costs) const;
+		void  ComputeD2Costs(const D2SimpleLinRegSol& d2costs, int count, int label, int depth, double& costs) const;
 		inline bool IsD2ZeroCost(const D2SimpleLinRegSol& d2costs) const { return d2costs.weight == 0; }
 		LinearModel GetLabel(const D2SimpleLinRegSol& costs, int count) const;
 		

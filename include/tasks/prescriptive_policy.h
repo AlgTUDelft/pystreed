@@ -49,7 +49,7 @@ namespace STreeD {
 		double GetLeafCosts(const ADataView& data, const BranchContext& context, int label) const;
 		int GetTestLeafCosts(const ADataView& data, const BranchContext& context, int label) const;
 		void GetInstanceLeafD2Costs(const AInstance* instance, int org_label, int label, double& costs, int multiplier) const;
-		void ComputeD2Costs(const double& d2costs, int count, double& costs) const { costs = d2costs; }
+		void ComputeD2Costs(const double& d2costs, int count, int label, int depth, double& costs) const { costs = d2costs; }
 		inline bool IsD2ZeroCost(const double d2costs) const { return std::abs(d2costs) < 1e-6; }
 		inline double GetWorstPerLabel(int label) const { return worst_per_label[label]; }
 

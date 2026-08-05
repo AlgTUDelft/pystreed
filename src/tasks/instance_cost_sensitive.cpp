@@ -33,7 +33,7 @@ namespace STreeD {
         costs = multiplier * et.GetLabelCost(label);
     }
 
-    void InstanceCostSensitive::ComputeD2Costs(const double& d2costs, int count, double &costs) const {
+    void InstanceCostSensitive::ComputeD2Costs(const double& d2costs, int count, int label, int depth, double &costs) const {
         costs = d2costs < 0 ? 0.0 : d2costs;
     }
 

@@ -50,7 +50,6 @@ namespace STreeD {
 		static const bool custom_get_label = false;			// Set to true if you want to compute the label customly, rather than using max. cost
 		static const bool use_weights = false;				// Set to true if you want to counts to be based on the weights of isntances
 		static constexpr int worst_label = INT32_MAX;		// Defines the default label, when no label is given.
-		static constexpr int num_tune_phases = 1;			// Number of tuning phases in hypertuning
 		static constexpr int minimum_difference = 0;		// The minimum difference between two solutions
 
 
@@ -99,6 +98,8 @@ namespace STreeD {
 		inline static std::string ScoreToString(double sol_val) { return std::to_string(sol_val); }
 		inline static std::string ScoreToString(int sol_val) { return std::to_string(sol_val); }
 
+		// Number of tuning phases in hypertuning 
+		int GetNumberOfTunePhases() const { return 1; }
 		// Get the configurations for hypertuning
 		static TuneRunConfiguration GetTuneRunConfiguration(const ParameterHandler& default_config, const ADataView& train_data, int phase);
 		

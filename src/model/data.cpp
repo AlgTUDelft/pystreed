@@ -176,9 +176,7 @@ namespace STreeD {
 		const int num_labels = data.NumLabels();
 		const double fold_percentage = 1.0 / folds;
 		const bool regression = std::is_same<LT, double>::value;
-
 		
-
 		train_folds.clear();
 		test_folds.clear();
 
@@ -253,7 +251,6 @@ namespace STreeD {
 					indices.push_back(instance->GetID());
 				}
 			}
-
 			std::shuffle(indices.begin(), indices.end(), *rng);
 			int begin_index = 0;
 			for (int fold = 0; fold < folds; fold++) {
@@ -278,8 +275,6 @@ namespace STreeD {
 				}
 			}
 		}
-
-
 
 		for (int fold = 0; fold < folds; fold++) {
 			train_folds.push_back(ADataView(data.GetData(), num_labels));

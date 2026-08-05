@@ -118,7 +118,7 @@ namespace STreeD {
 		void GetInstanceLeafD2Costs(const AInstance* instance, int org_label, int label, D2SASol& costs, int multiplier) const;
 		
 		// Compute the loss from the depth-two cost tuple
-		void ComputeD2Costs(const D2SASol& d2costs, int count, double& costs) const;
+		void ComputeD2Costs(const D2SASol& d2costs, int count, int label, int depth, double& costs) const;
 
 		// Return true if the depth-two contribution is zero (always false)
 		inline bool IsD2ZeroCost(const D2SASol& d2costs) const { return false; }

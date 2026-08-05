@@ -20,7 +20,8 @@ namespace STreeD {
 			"Task to optimize.",
 			"accuracy",
 			"Main Parameters",
-			{ "accuracy", "cost-complex-accuracy", "balanced-accuracy",
+
+			{"accuracy", "cost-complex-accuracy", "accuracy-flex", "balanced-accuracy",
 			"f1-score", "group-fairness", "survival-analysis",
 			"regression", "cost-complex-regression", "piecewise-linear-regression",
 			"simple-linear-regression", "equality-of-opportunity", "cost-sensitive",
@@ -30,7 +31,7 @@ namespace STreeD {
 		parameters.DefineBooleanParameter
 		(
 			"hyper-tune",
-			"Enable/disable hyper-tuning.",
+			"Enable/disable hyperparameter tuning.",
 			false,
 			"Main Parameters"
 		);
@@ -328,6 +329,68 @@ namespace STreeD {
 			"Task-specific Parameters",
 			{ "equivalent", "kmeans" },
 			true
+		);
+
+		parameters.DefineFloatParameter
+		(
+			"confidence-coefficient",
+			"The confidence interval upper limit that is used to provide a more pessimistic estimate of the error.",
+			0.25, // default value
+			"Task-specific Parameters",
+			0.0, //min value
+			1.0 //max 
+		);
+
+        parameters.DefineStringParameter
+		(
+			"accuracy-objective",
+			"The objective function to use in the leaf node for the accuracy-flex optimization task.",
+			"misclassification-score", // default value
+			"Task-specific Parameters",
+			{"misclassification-score", "gini-index", "entropy", "mdl-quinlan", "mdl-mehta",
+			"pessimistic-binomial", "bayes", "m-loss", "l-loss", "sqrt-gini", "min-error"},
+			true
+		);
+
+		parameters.DefineStringParameter
+		(
+			"tune-method",
+			"The tuning method used.",
+			"tree-size", // default value
+			"Task-specific Parameters",
+			{ "tree-size", "cost-complexity", "weighted-cost-complexity", 
+				"min-leaf-node-size", "depth", "smoothing" },
+			true
+		);
+
+		parameters.DefineIntegerParameter
+		(
+			"smoothing",
+			"The number of default counts per class used to smooth the loss function.",
+			0,			// default value
+			"Task-specific Parameters",
+			0,			// min value
+			INT32_MAX	// max value
+		);
+
+		parameters.DefineIntegerParameter
+		(
+			"num-hyper-params",
+			"The number of hyperparameters to try (only for accuracy-flex).",
+			10,			// default value
+			"Task-specific Parameters",
+			1,			// min value
+			INT32_MAX	// max value
+		);
+
+		parameters.DefineIntegerParameter
+		(
+			"num-hyper-runs",
+			"The number of validation runs to try during hyperparameter tuning.",
+			5,			// default value
+			"Algorithmic Parameters",
+			1,			// min value
+			INT32_MAX	// max value
 		);
 
 		return parameters;

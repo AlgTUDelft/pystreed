@@ -2,7 +2,6 @@
 #include "base.h"
 #include "model/data.h"
 #include "model/branch.h"
-#include "solver/branch_cache.h"
 
 namespace STreeD {
 
